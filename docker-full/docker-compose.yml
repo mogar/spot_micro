@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  ros2:
+    build: .
+    network_mode: host
+    ipc: host
+    volumes:
+      - /home/robo/ros:/home/ros
+      - /home/robo/cubie-1:/ros2
+#    devices:
+#      - /dev/ttyUSB0:/dev/ttyUSB0
+    tty: true
+#    environment:
+#      - DISPLAY
