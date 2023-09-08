@@ -9,6 +9,5 @@
 
 ## TODO:
 
-* get I2C library for PWM control
 * integrate PWM control into servo ctl package
 * update joylistener to make it custom for joy2servodebug
