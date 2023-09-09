@@ -1,10 +1,11 @@
-from board import SCL, SDA
-import busio
-import adafruit_pca9685
+
+from joint_ctl.lib.servo import Servo, PcaPwm
 
 def main():
-    i2c = busio.I2C(1, 3, 2) # TODO: switch away from busio??? maybe use SMBus instead??
-    pca = adafruit_pca9685.PCA9685(i2c)
+    controller = PcaPwm(channel = 20)
+    # TODO: max, min, default?
+    flc_servo = Servo(controller, 0) # front-left coxa
+
     print('Hi from joint_ctl.')
 
 

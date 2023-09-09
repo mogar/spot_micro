@@ -22,19 +22,6 @@ source install/setup.bash
 
 ## TODO:
 
-* figure out I2C control (ditch busio, basically)
-  * use SMBus?? If so, make a wrapper class that can be handed to adafruit PWM ctlr lib?
-  ```
-  import smbus
-
-  # I2C channel 1 is connected to the GPIO pins
-  channel = 1
-  address = 0x60 # TODO
-  bus = smbus.SMBus(channel)
-  ```
-  * maybe just replace/rewrite adafruit stuff
-    * https://github.com/adafruit/Adafruit_CircuitPython_PCA9685/blob/main/adafruit_pca9685.py
-    * https://github.com/adafruit/Adafruit_CircuitPython_ServoKit/blob/main/adafruit_servokit.py
-    * https://github.com/adafruit/Adafruit_CircuitPython_Motor/blob/main/adafruit_motor/servo.py#L77
+* output enable gpio control for servo.py
 * integrate PWM control into servo_ctl node of joint_ctl package
 * update joylistener to make it custom for joy2servodebug
