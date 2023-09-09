@@ -22,6 +22,5 @@ source install/setup.bash
 
 ## TODO:
 
-* output enable gpio control for servo.py
 * integrate PWM control into servo_ctl node of joint_ctl package
 * update joylistener to make it custom for joy2servodebug

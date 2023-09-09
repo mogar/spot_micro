@@ -18,6 +18,7 @@ Connect the Controller to your Raspberry Pi with this pinout:
 * Pi GND (Pi4 pin6) to driver GND
 * Pi SCL (Pi4 pin5) to driver SCL
 * Pi SDA (Pi4 pin3) to driver SDA
+* Pi GPIO17 (Pi4 pin11) to driver enable
 
 The library expects the PWM controller to have I2C address 0x
 

@@ -11,11 +11,19 @@
 from typing import Optional, Type
 from types import TracebackType
 
+import RPi.GPIO as GPIO
 from smbus2 import SMBus
 # see also: https://www.abelectronics.co.uk/kb/article/1094/i2c-part-4---programming-i-c-with-python
 
 class PcaPwm():
     """
+    Assumes use of the primary I2C interface and one GPIO pin to control a PCA9685
+    * Pi 3V3 (Pi4 pin1) to driver VCC
+    * Pi GND (Pi4 pin6) to driver GND
+    * Pi SCL (Pi4 pin5) to driver SCL
+    * Pi SDA (Pi4 pin3) to driver SDA
+    * Pi GPIO17 (Pi4 pin11) to driver enable
+
     0x00: mode reg 1 - bit 7 is restart
     0x01: mode reg 2
     All PWM outputs have 4 bytes for power control
@@ -26,8 +34,13 @@ class PcaPwm():
     """
     def __init__(self, channel: int, address: int = 0x40):
         self._osc = 25E6 # internal oscillator frequency
+        self._reset_pin = 17 # header pin 11, gpio pin 17
         self._address = address
         self._bus = SMBus(channel)
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self._reset_pin, GPIO.OUT)
+        self.enable()
 
     # TODO: getter and setter
     def frequency(self, freq: int):
@@ -42,12 +55,10 @@ class PcaPwm():
             print("ERROR: couldn't write frequency to PWM controller")
 
     def enable(self):
-        # TODO - control gpio
-        pass
+        GPIO.output(self._reset_pin, GPIO.LOW)
 
     def disable(self):
-        # TODO - control gpio
-        pass
+        GPIO.output(self._reset_pin, GPIO.HIGH)
 
     def write_pwm(self, pin: int, pwm: int):
         # NOTE: we always have 0 phase offsets, this means the
