@@ -9,19 +9,19 @@ from spot_interfaces.msg import JointAngles
 class SpotJoints(Node):
 
     def __init__(self):
-        super().__init__("node_test")
+        super().__init__("spot_joints")
 
         self._controller = PcaPwm(channel = 20)
         # TODO: max, min, default?
         self._fls_servo = Servo(self._controller, 0) # front-left shoulder
         # TODO: other joints
 
-        self.subscription = self.create_subscription(
+        self._subscription = self.create_subscription(
             JointAngles,
             'spot/joints',
             self.joint_msg_callback,
             10)
-        self.subscription  # prevent unused variable warning
+        self._subscription  # prevent unused variable warning
 
         self.get_logger().info("SpotJoints initialized")
 
