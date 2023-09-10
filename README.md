@@ -22,4 +22,8 @@ source install/setup.bash
 
 ## TODO:
 
-* update joylistener to make it custom for joy2servodebug
+* test on hardware
+* document current nodes
+* clean up code
+  * make sure nodes/processes finish cleanly on ctl-c
+* decide on test features for all spot servos

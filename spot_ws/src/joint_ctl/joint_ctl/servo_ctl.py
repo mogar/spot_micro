@@ -16,12 +16,12 @@ class SpotJoints(Node):
         self._fls_servo = Servo(self._controller, 0) # front-left shoulder
         # TODO: other joints
 
-        self._subscription = self.create_subscription(
+        self._joint_sub = self.create_subscription(
             JointAngles,
             'spot/joints',
             self.joint_msg_callback,
             10)
-        self._subscription  # prevent unused variable warning
+        self._joint_sub  # prevent unused variable warning
 
         self.get_logger().info("SpotJoints initialized")
 

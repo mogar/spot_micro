@@ -2,6 +2,10 @@ install/
 log/
 build/
 
+# Python outputs
+core
+__pycache__
+
 # Ignore generated docs
 *.dox
 *.wikidoc
