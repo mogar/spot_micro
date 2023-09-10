@@ -3,6 +3,9 @@ import rclpy
 from rclpy.node import Node
 from joint_ctl.lib.servo import Servo, PcaPwm
 
+from spot_interfaces.msg import JointAngles
+
+
 class SpotJoints(Node):
 
     def __init__(self):
@@ -10,12 +13,22 @@ class SpotJoints(Node):
 
         self._controller = PcaPwm(channel = 20)
         # TODO: max, min, default?
-        self._flc_servo = Servo(self._controller, 0) # front-left coxa
+        self._fls_servo = Servo(self._controller, 0) # front-left shoulder
         # TODO: other joints
 
-        self.counter_ = 0
+        self.subscription = self.create_subscription(
+            JointAngles,
+            'spot/joints',
+            self.joint_msg_callback,
+            10)
+        self.subscription  # prevent unused variable warning
+
         self.get_logger().info("SpotJoints initialized")
-        # TODO: callback for messages
+
+    def joint_msg_callback(self, msg):
+        self.get_logger().info("SpotJoints Msg")
+        slf._fls_servo.set_target(msg.fls)
+        # TODO: other joints
 
 
 def main(args=None):
