@@ -18,7 +18,7 @@ class SpotJoints(Node):
 
         self._joint_sub = self.create_subscription(
             JointAngles,
-            'spot/joints',
+            'joints',
             self.joint_msg_callback,
             10)
         self._joint_sub  # prevent unused variable warning
@@ -26,8 +26,7 @@ class SpotJoints(Node):
         self.get_logger().info("SpotJoints initialized")
 
     def joint_msg_callback(self, msg):
-        self.get_logger().info("SpotJoints Msg fls: " + str(msg.fls))
-        slf._fls_servo.set_target(msg.fls)
+        self._fls_servo.set_target(msg.fls)
         # TODO: other joints
 
 

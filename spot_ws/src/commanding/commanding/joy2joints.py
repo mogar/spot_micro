@@ -8,18 +8,18 @@ from spot_interfaces.msg import JointAngles
 class Joy2Joints(Node):
     def __init__(self):
         super().__init__('joy2joints')
-        self._joint_pub = self.create_publisher(JointAngles, 'spot/joints', 10)
+        self._joint_pub = self.create_publisher(JointAngles, 'joints', 10)
         self._joy_sub = self.create_subscription(Joy, "joy", self.joy_callback, 10)
         self._joy_sub # prevent unused variable warning
 
         # Set up parameters used in parsing joy messages
         self.declare_parameter('frequency', 200.0)
 
-        self.declare_parameter('axis_linear_x', 2)
-        self.declare_parameter('axis_linear_y', 3)
-        self.declare_parameter('axis_linear_z', 1)
+        self.declare_parameter('axis_linear_x', 1)
+        self.declare_parameter('axis_linear_y', 0)
+        self.declare_parameter('axis_linear_z', 2)
 
-        self.declare_parameter('axis_angular', 0)
+        self.declare_parameter('axis_angular', 5)
 
         self.declare_parameter('scale_linear', 1.0)
         self.declare_parameter('scale_angular', 1.0)
@@ -32,12 +32,12 @@ class Joy2Joints(Node):
     def joy_callback(self, msg):
         joint_msg = JointAngles()
 
-        x_linear = msg.axes[self.get_parameter('axis_linear_x').get_parameter_value().int_value]
+        # TODO: control of any servo (switch via button press)
+        x_linear = msg.axes[self.get_parameter('axis_linear_x').get_parameter_value().integer_value]
         if x_linear > 0:
-            self.get_logger().info("axis_linear_x: " + str(x_linear))
-            joint_msg.fls = 90
+            joint_msg.fls = 90.0
         else:
-            joint_msg.fls = 0
+            joint_msg.fls = 0.0
 
         self._joint_pub.publish(joint_msg)
 
