@@ -26,7 +26,7 @@ class SpotJoints(Node):
         self.get_logger().info("SpotJoints initialized")
 
     def joint_msg_callback(self, msg):
-        self.get_logger().info("SpotJoints Msg")
+        self.get_logger().info("SpotJoints Msg fls: " + str(msg.fls))
         slf._fls_servo.set_target(msg.fls)
         # TODO: other joints
 

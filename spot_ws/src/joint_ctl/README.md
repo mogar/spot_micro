@@ -7,8 +7,6 @@ This package is intended to control a set of servos via I2C. The servos should b
 You can get these via pip:
 
 * RPi.GPIO
-* adafruit-circuitpython-pca9685
-* adafruit-circuitpython-servokit
 
 ## Hardware Connection and Verification
 
@@ -20,7 +18,7 @@ Connect the Controller to your Raspberry Pi with this pinout:
 * Pi SDA (Pi4 pin3) to driver SDA
 * Pi GPIO17 (Pi4 pin11) to driver enable
 
-The library expects the PWM controller to have I2C address 0x
+The library expects the PWM controller to have I2C address 0x40
 
 To verify your servo driver is connected correctly and usable, run:
 
