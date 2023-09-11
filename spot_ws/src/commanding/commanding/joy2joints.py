@@ -12,13 +12,29 @@ class Joy2Joints(Node):
         self._joy_sub = self.create_subscription(Joy, "joy", self.joy_callback, 10)
         self._joy_sub # prevent unused variable warning
 
+        # Set up parameters used in parsing joy messages
+        self.declare_parameter('frequency', 200.0)
+
+        self.declare_parameter('axis_linear_x', 2)
+        self.declare_parameter('axis_linear_y', 3)
+        self.declare_parameter('axis_linear_z', 1)
+
+        self.declare_parameter('axis_angular', 0)
+
+        self.declare_parameter('scale_linear', 1.0)
+        self.declare_parameter('scale_angular', 1.0)
+
+        self.declare_parameter('button_switch', 0)
+        self.declare_parameter('button_estop', 1)
+
         self.get_logger().info("Joy2Joints initialized")
 
     def joy_callback(self, msg):
         joint_msg = JointAngles()
 
-        if msg.axes[0] > 0:
-            self.get_logger().info(">0")
+        x_linear = msg.axes[self.get_parameter('axis_linear_x').get_parameter_value().int_value]
+        if x_linear > 0:
+            self.get_logger().info("axis_linear_x: " + str(x_linear))
             joint_msg.fls = 90
         else:
             joint_msg.fls = 0

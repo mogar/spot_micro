@@ -7,6 +7,10 @@
 
 Originally designed based off of the [Spot Micro NovaSM3](https://novaspotmicro.com/). The electronics have mostly been replaced with just an RPi4.
 
+## Software
+
+Some of this software is based on the [spot-mini-mini repo from OpenQuadruped](https://github.com/OpenQuadruped/spot_mini_mini).
+
 ## Usage
 
 * Set up the RPi 4, install docker on it, build the docker image from `docker-full`

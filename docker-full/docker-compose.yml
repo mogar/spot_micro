@@ -8,8 +8,9 @@ services:
       - /home/robo/ros:/home/ros
       - /home/robo/cubie-1:/ros2
     devices:
-      - /dev/i2c-20 # for RPi4 I2C
-      - /dev/gpiomem # for rpi.gpio
+      - /dev/i2c-20    # for RPi4 I2C
+      - /dev/gpiomem   # for rpi.gpio
+      - /dev/input/js0 # for gamepad
 #      - /dev/ttyUSB0:/dev/ttyUSB0
     tty: true
 #    environment:
