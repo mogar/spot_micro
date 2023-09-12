@@ -56,6 +56,7 @@ def main(args=None) -> None:
     rclpy.init(args=args)
     node = Joy2Joints()
     rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

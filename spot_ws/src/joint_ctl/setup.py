@@ -13,10 +13,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='root',
-    maintainer_email='root@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='Morgan',
+    maintainer_email='redfieldm@gmail.com',
+    description='Control endpoint for Spot servos. It\'s all hardware after this.',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

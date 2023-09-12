@@ -33,8 +33,6 @@ Check out the launch files in `spot_ws/launch` for examples of what you can do.
 ## TODO:
 
 * test on hardware
-* document current nodes
-* clean up code
-  * make sure nodes/processes finish cleanly on ctl-c
+* make sure nodes/processes finish cleanly on ctl-c
 * decide on test features for all spot servos
 * electronics diagrams

@@ -40,6 +40,8 @@ def main(args=None) -> None:
     rclpy.init(args=args)
     node = SpotJoints()
     rclpy.spin(node)
+    # TODO: add method to release RPi.GPIO
+    node.destroy_node()
     rclpy.shutdown()
 
 
