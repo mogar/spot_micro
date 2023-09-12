@@ -12,3 +12,5 @@ jstest --event /dev/input/js0
 ```
 
 This should give you a running list of your joystick events, allowing you to verify that it works and that the buttons and sticks are numbered how you expect.
+
+If you're running this package in a docker container, make sure that `/dev/input/event0` and `/dev/input/js0` are shared with the container.

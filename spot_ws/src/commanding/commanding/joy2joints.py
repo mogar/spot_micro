@@ -6,7 +6,14 @@ from sensor_msgs.msg import Joy
 from spot_interfaces.msg import JointAngles
 
 class Joy2Joints(Node):
-    def __init__(self):
+    """
+    Class implementing ROS2 Node to convert joystick commands directly into joint angles.
+
+    Tested using a Logitech F710. Depends on the spot_interfaces messages package.
+    """
+
+    def __init__(self) -> None:
+        """Initialize button and stick configuration, setup pubs and subs."""
         super().__init__('joy2joints')
         self._joint_pub = self.create_publisher(JointAngles, 'joints', 10)
         self._joy_sub = self.create_subscription(Joy, "joy", self.joy_callback, 10)
@@ -29,7 +36,8 @@ class Joy2Joints(Node):
 
         self.get_logger().info("Joy2Joints initialized")
 
-    def joy_callback(self, msg):
+    def joy_callback(self, msg) -> None:
+        """Populate and send a joint servo message based on an incoming joy message."""
         joint_msg = JointAngles()
 
         # TODO: control of any servo (switch via button press)
@@ -42,7 +50,7 @@ class Joy2Joints(Node):
         self._joint_pub.publish(joint_msg)
 
 
-def main(args=None):
+def main(args=None) -> None:
     print('Hi from joy2joints.')
 
     rclpy.init(args=args)

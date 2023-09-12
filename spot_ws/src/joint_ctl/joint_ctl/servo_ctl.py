@@ -7,8 +7,11 @@ from spot_interfaces.msg import JointAngles
 
 
 class SpotJoints(Node):
-
-    def __init__(self):
+    """
+    Class implementing ROS2 Node to convert to drive Spot servos to desired angles.
+    """
+    def __init__(self) -> None:
+        """Set up servos for all joints. Initiate subscriber for joint angle messages."""
         super().__init__("spot_joints")
 
         self._controller = PcaPwm(channel = 20)
@@ -25,12 +28,13 @@ class SpotJoints(Node):
 
         self.get_logger().info("SpotJoints initialized")
 
-    def joint_msg_callback(self, msg):
+    def joint_msg_callback(self, msg) -> None:
+        """Send joint angles from received message to servo controller hardware."""
         self._fls_servo.set_target(msg.fls)
         # TODO: other joints
 
 
-def main(args=None):
+def main(args=None) -> None:
     print('Hi from joint_ctl.')
 
     rclpy.init(args=args)
