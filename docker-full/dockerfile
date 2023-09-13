@@ -33,6 +33,6 @@ RUN apt-get install nano -y --no-install-recommends
 RUN sudo echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 
 # install Spot depends
-RUN apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install -y \
     python3-pip i2c-tools jstest-gtk
 RUN pip install smbus2 rpi.gpio

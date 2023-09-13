@@ -8,6 +8,10 @@ You can get these via pip:
 
 * RPi.GPIO
 
+## Raspberry Pi I2C setup
+
+On the Pi, you may need to modify `/boot/config.txt` to uncomment the line for `dtparam=i2c_arm=on` and reboot.
+
 ## Hardware Connection and Verification
 
 Connect the Controller to your Raspberry Pi with this pinout:

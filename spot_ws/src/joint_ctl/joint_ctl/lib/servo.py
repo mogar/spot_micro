@@ -91,10 +91,13 @@ class PcaPwm():
 
 class Servo():
     """Manage state for a specific PWM pin connected to a servo."""
-    def __init__(self, comms: PcaPwm, servo_id: int, home: int = 1000, min_out: int = 750, max_out: int = 1500) -> None:
+    def __init__(self, comms: PcaPwm, servo_id: int, min_out: list[int] = [90, 750], max_out: list[int] = [90, 1500], home: int = 0) -> None:
         """Initialize parameters of the servo and drive it to home."""
         self._comms = comms
         self._servo_id = servo_id
+        
+        # limits are tuples of [angle, pwm value]
+        # we use them for linear interpolation when determining new pwm values from angle inputs
         self._min_out = min_out
         self._max_out = max_out
         self._home = home
@@ -105,7 +108,7 @@ class Servo():
 
         Return the actual value set (after accounting for clamping)."""
         # bounds checking
-        self._target = min(self._min_out, max(target, self._max_out))
+        self._target = min(self._min_out[1], max(target, self._max_out[1]))
         self._comms.write_pwm(self._servo_id, self._target)
         return self._target
 
@@ -113,7 +116,27 @@ class Servo():
         """Return the current pwm value (not angle) of the servo."""
         return self._target
 
-    # TODO: set max and min values
+    def angle_to_target(self, angle: float) -> int:
+        # linear interp between min/max
+        target = (self._min_out[1] - self._max_out[1])/(self._min_out[0] - self._max_out[0]) * \
+                (angle - self._max_out[0]) + self._max_out[1]
+        target = int(target)
+        print(str(angle) + " => " + str(target))
+        return target
+    
+    def target_to_angle(self, target: int) -> float:
+        # linear interp between min/max
+        angle = (self._min_out[0] - self._max_out[0])/(self._min_out[1] - self._max_out[1]) * \
+                (target - self._max_out[1]) + self._max_out[0]
+        print(str(target) + " => " + str(angle))
+        return angle
 
-    # TODO: set_angle, get_angle
+    def set_angle(self, angle: float) -> float:
+        angle = min(self._min_out[0], max(angle, self._max_out[0]))
+        self.set_target(self.angle_to_target(angle))
+        return angle
+
+    def get_angle(self) -> float:
+        return self.target_to_angle(self._target)
+
     # NOTE: see property and setter here: https://github.com/adafruit/Adafruit_CircuitPython_Motor/blob/main/adafruit_motor/servo.py#L123

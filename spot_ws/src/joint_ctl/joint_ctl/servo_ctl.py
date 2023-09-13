@@ -14,9 +14,9 @@ class SpotJoints(Node):
         """Set up servos for all joints. Initiate subscriber for joint angle messages."""
         super().__init__("spot_joints")
 
-        self._controller = PcaPwm(channel = 20)
+        self._controller = PcaPwm(channel = 1)
         # TODO: max, min, default?
-        self._fls_servo = Servo(self._controller, 0) # front-left shoulder
+        self._fls_servo = Servo(self._controller, 0, min_out = [-90, 300], max_out = [90, 500]) # front-left shoulder
         # TODO: other joints
 
         self._joint_sub = self.create_subscription(
@@ -30,6 +30,7 @@ class SpotJoints(Node):
 
     def joint_msg_callback(self, msg) -> None:
         """Send joint angles from received message to servo controller hardware."""
+        #self.get_logger().info("fls: " + str(msg.fls))
         self._fls_servo.set_target(msg.fls)
         # TODO: other joints
 

@@ -42,6 +42,8 @@ class Joy2Joints(Node):
 
         # TODO: control of any servo (switch via button press)
         x_linear = msg.axes[self.get_parameter('axis_linear_x').get_parameter_value().integer_value]
+        self.get_logger().info("x_linear: " + str(x_linear))
+
         if x_linear > 0:
             joint_msg.fls = 90.0
         else:
