@@ -55,8 +55,6 @@ class Joy2Joints(Node):
 
 
 def main(args=None) -> None:
-    print('Hi from joy2joints.')
-
     rclpy.init(args=args)
     node = Joy2Joints()
     rclpy.spin(node)

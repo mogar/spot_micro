@@ -9,8 +9,11 @@ You can find the datasheet for the PCA9685 [here](https://cdn-shop.adafruit.com/
 from typing import Optional, Type
 from types import TracebackType
 
+import time
 import RPi.GPIO as GPIO
 from smbus2 import SMBus
+
+from rclpy import logging
 
 class PcaPwm():
     """
@@ -39,6 +42,9 @@ class PcaPwm():
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._reset_pin, GPIO.OUT)
+
+        # TODO: set oscillator frequency to 25000000 (datasheet internal osc freq)
+        self.frequency(60) # based on NovaSM3 experiments 
         self.enable()
 
     # TODO: getter and setter
@@ -46,12 +52,26 @@ class PcaPwm():
         prescale = self._osc/(4096*freq) - 1
         # min of 3   => 1526Hz
         # max of 255 => 24Hz
-        clamped_prescale = min(3, max(prescale, 255))
+        clamped_prescale = int(max(3, min(prescale, 255)))
         prescale_bytes = clamped_prescale.to_bytes(1, "little")
         try:
+            # read mode1
+            mode1 = self._bus.read_byte_data(self._address, 0x00)
+            print(mode1)
+            # write to set it to not reset and sleep
+            temp_mode = (mode1 & ~0x80) | 0x10 
+            # set extclock bits
+            self._bus.write_byte_data(self._address, 0x00, temp_mode)
+            # set prescale
             self._bus.write_byte_data(self._address, 0xFE, prescale_bytes[0])
+            # set old mode1
+            self._bus.write_byte_data(self._address, 0x00, mode1)
+            # delay 5ms
+            time.sleep(0.005)
+            # clear sleep bit in mode1
+            self._bus.write_byte_data(self._address, 0x00, mode1 | 0x80)
         except:
-            print("ERROR: couldn't write frequency to PWM controller")
+            logging.get_logger("PcaPwm").info("ERROR: couldn't write frequency to PWM controller")
 
     def enable(self) -> None:
         """Enable PWM output by driving the gpio low."""
@@ -73,7 +93,7 @@ class PcaPwm():
         `pwm` argument, then the pin will turn off. This is how the duty cycle is set.
         """
         # clamp the PWM input to valid values
-        pwm = max(0, min(pwm, 4095))
+        pwm = int(max(0, min(pwm, 4095)))
         # the clamped value determines duty cycle, out of 4095
         # NOTE: there is an individual disable bit in the high register for
         # each pin. It's currently unused.
@@ -85,7 +105,7 @@ class PcaPwm():
             self._bus.write_byte_data(self._address, (6+4*pin + 2), pwm_bytes[0]) # off LO
             self._bus.write_byte_data(self._address, (6+4*pin + 3), pwm_bytes[1]) # off HI
         except:
-            print("ERROR: couldn't write duty cycle to pwm controller")
+            logging.get_logger("PcaPwm").info("ERROR: couldn't write duty cycle to pwm controller")
 
 
 
@@ -108,7 +128,7 @@ class Servo():
 
         Return the actual value set (after accounting for clamping)."""
         # bounds checking
-        self._target = min(self._min_out[1], max(target, self._max_out[1]))
+        self._target = max(self._min_out[1], min(target, self._max_out[1]))
         self._comms.write_pwm(self._servo_id, self._target)
         return self._target
 
@@ -121,18 +141,16 @@ class Servo():
         target = (self._min_out[1] - self._max_out[1])/(self._min_out[0] - self._max_out[0]) * \
                 (angle - self._max_out[0]) + self._max_out[1]
         target = int(target)
-        print(str(angle) + " => " + str(target))
         return target
     
     def target_to_angle(self, target: int) -> float:
         # linear interp between min/max
         angle = (self._min_out[0] - self._max_out[0])/(self._min_out[1] - self._max_out[1]) * \
                 (target - self._max_out[1]) + self._max_out[0]
-        print(str(target) + " => " + str(angle))
         return angle
 
     def set_angle(self, angle: float) -> float:
-        angle = min(self._min_out[0], max(angle, self._max_out[0]))
+        angle = max(self._min_out[0], min(angle, self._max_out[0]))
         self.set_target(self.angle_to_target(angle))
         return angle
 
