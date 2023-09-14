@@ -22,32 +22,34 @@ class Joy2Joints(Node):
         # Set up parameters used in parsing joy messages
         self.declare_parameter('frequency', 200.0)
 
-        self.declare_parameter('axis_linear_x', 1)
-        self.declare_parameter('axis_linear_y', 0)
-        self.declare_parameter('axis_linear_z', 2)
+        self.declare_parameter('R_stick_side', 3)
+        self.declare_parameter('R_stick_fwd', 4)
+        self.declare_parameter('R_trigger_bottom', 5)
 
-        self.declare_parameter('axis_angular', 5)
+        self.declare_parameter('scale', 90.0)
 
-        self.declare_parameter('scale_linear', 1.0)
-        self.declare_parameter('scale_angular', 1.0)
-
-        self.declare_parameter('button_switch', 0)
-        self.declare_parameter('button_estop', 1)
+        self.declare_parameter('button_switch', 0) # A
+        self.declare_parameter('button_estop', 1) # B
 
         self.get_logger().info("Joy2Joints initialized")
 
     def joy_callback(self, msg) -> None:
         """Populate and send a joint servo message based on an incoming joy message."""
+
+        # It's useful to uncomment the below and run this node standalone if you're having
+        # issues with button/axis identification on your gamepad. Just run it and view the
+        # output while pressing the different buttons, and sticks.
+        # self.get_logger().info("axes: " + str(msg.axes) + ", buttons: " + str(msg.buttons))
+
         joint_msg = JointAngles()
 
         # TODO: control of any servo (switch via button press)
-        x_linear = msg.axes[self.get_parameter('axis_linear_x').get_parameter_value().integer_value]
-        self.get_logger().info("x_linear: " + str(x_linear))
+        r_side = msg.axes[self.get_parameter('R_stick_side').value]
+        # convert to degrees
+        ankle_angle = r_side*self.get_parameter('scale').value
 
-        if x_linear > 0:
-            joint_msg.fls = 90.0
-        else:
-            joint_msg.fls = 0.0
+        #self.get_logger().info("input: " + str(r_side) + ", angle: " + str(ankle_angle))
+        joint_msg.fls = ankle_angle
 
         self._joint_pub.publish(joint_msg)
 
