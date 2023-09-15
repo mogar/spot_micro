@@ -20,7 +20,7 @@ class Joy2Joints(Node):
         self._joy_sub # prevent unused variable warning
 
         # Set up parameters used in parsing joy messages
-        self.declare_parameter('frequency', 200.0)
+        self.declare_parameter('publish_period_s', 0.02)
 
         self.declare_parameter('R_stick_side', 3)
         self.declare_parameter('R_stick_fwd', 4)
@@ -33,12 +33,21 @@ class Joy2Joints(Node):
 
         self.get_logger().info("Joy2Joints initialized")
 
+        # create a timer to publish the command at the right rate
+        self.create_timer(self.get_parameter('publish_period_s').value, self.joint_publisher)
+
         # leg 0: FL
         # leg 1: FR
         # leg 2: BL
         # leg 3: BR
         self._leg_id = 0
-        self._switch_pressed = 0
+        self._num_legs = 4
+        self._switch_pressed = False
+
+        # starting default angles
+        self._shoulder_angle = 0
+        self._elbow_angle = 0
+        self._wrist_angle = 0
 
     def joy_callback(self, msg) -> None:
         """Populate and send a joint servo message based on an incoming joy message."""
@@ -48,35 +57,45 @@ class Joy2Joints(Node):
         # output while pressing the different buttons, and sticks.
         # self.get_logger().info("axes: " + str(msg.axes) + ", buttons: " + str(msg.buttons))
 
-        joint_msg = JointAngles()
-
-        # TODO: switch leg via button press (debounced)
+        # switch leg via button press
+        if msg.buttons[self.get_parameter('button_switch').value]:
+            if not self._switch_pressed:
+                self._switch_pressed = True
+                self._leg_id += 1
+                self.get_logger().info("leg id: " + str(self._leg_id))
+                if self._leg_id >= self._num_legs:
+                    self._leg_id = 0
+        else:
+            self._switch_pressed = False
 
         # get control for all servos in active leg
         shoulder = msg.axes[self.get_parameter('R_stick_fwd').value]
         elbow =    msg.axes[self.get_parameter('R_stick_side').value]
         wrist =    msg.axes[self.get_parameter('R_trigger_bottom').value]
         # convert to degrees
-        shoulder_angle = shoulder*self.get_parameter('scale').value
-        elbow_angle = elbow*self.get_parameter('scale').value
-        wrist_angle = wrist*self.get_parameter('scale').value
+        self._shoulder_angle = shoulder*self.get_parameter('scale').value
+        self._elbow_angle = elbow*self.get_parameter('scale').value
+        self._wrist_angle = wrist*self.get_parameter('scale').value
+
+    def joint_publisher(self):
+        joint_msg = JointAngles()
 
         if self._leg_id == 0: # FL
-            joint_msg.fls = shoulder_angle
-            joint_msg.fls = elbow_angle
-            joint_msg.fls = wrist_angle
+            joint_msg.fls = self._shoulder_angle
+            joint_msg.fle = self._elbow_angle
+            joint_msg.flw = self._wrist_angle
         elif self._leg_id == 1: # FR
-            joint_msg.frs = shoulder_angle
-            joint_msg.frs = elbow_angle
-            joint_msg.frs = wrist_angle
-        if self._leg_id == 2: # BL
-            joint_msg.bls = shoulder_angle
-            joint_msg.bls = elbow_angle
-            joint_msg.bls = wrist_angle
+            joint_msg.frs = self._shoulder_angle
+            joint_msg.fre = self._elbow_angle
+            joint_msg.frw = self._wrist_angle
+        elif self._leg_id == 2: # BL
+            joint_msg.bls = self._shoulder_angle
+            joint_msg.ble = self._elbow_angle
+            joint_msg.blw = self._wrist_angle
         else: #self._leg_id == 3 - BR
-            joint_msg.brs = shoulder_angle
-            joint_msg.brs = elbow_angle
-            joint_msg.brs = wrist_angle
+            joint_msg.brs = self._shoulder_angle
+            joint_msg.bre = self._elbow_angle
+            joint_msg.brw = self._wrist_angle
 
         self._joint_pub.publish(joint_msg)
 
