@@ -33,6 +33,13 @@ class Joy2Joints(Node):
 
         self.get_logger().info("Joy2Joints initialized")
 
+        # leg 0: FL
+        # leg 1: FR
+        # leg 2: BL
+        # leg 3: BR
+        self._leg_id = 0
+        self._switch_pressed = 0
+
     def joy_callback(self, msg) -> None:
         """Populate and send a joint servo message based on an incoming joy message."""
 
@@ -43,13 +50,33 @@ class Joy2Joints(Node):
 
         joint_msg = JointAngles()
 
-        # TODO: control of any servo (switch via button press)
-        r_side = msg.axes[self.get_parameter('R_stick_side').value]
-        # convert to degrees
-        ankle_angle = r_side*self.get_parameter('scale').value
+        # TODO: switch leg via button press (debounced)
 
-        #self.get_logger().info("input: " + str(r_side) + ", angle: " + str(ankle_angle))
-        joint_msg.fls = ankle_angle
+        # get control for all servos in active leg
+        shoulder = msg.axes[self.get_parameter('R_stick_fwd').value]
+        elbow =    msg.axes[self.get_parameter('R_stick_side').value]
+        wrist =    msg.axes[self.get_parameter('R_trigger_bottom').value]
+        # convert to degrees
+        shoulder_angle = shoulder*self.get_parameter('scale').value
+        elbow_angle = elbow*self.get_parameter('scale').value
+        wrist_angle = wrist*self.get_parameter('scale').value
+
+        if self._leg_id == 0: # FL
+            joint_msg.fls = shoulder_angle
+            joint_msg.fls = elbow_angle
+            joint_msg.fls = wrist_angle
+        elif self._leg_id == 1: # FR
+            joint_msg.frs = shoulder_angle
+            joint_msg.frs = elbow_angle
+            joint_msg.frs = wrist_angle
+        if self._leg_id == 2: # BL
+            joint_msg.bls = shoulder_angle
+            joint_msg.bls = elbow_angle
+            joint_msg.bls = wrist_angle
+        else: #self._leg_id == 3 - BR
+            joint_msg.brs = shoulder_angle
+            joint_msg.brs = elbow_angle
+            joint_msg.brs = wrist_angle
 
         self._joint_pub.publish(joint_msg)
 

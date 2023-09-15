@@ -120,7 +120,7 @@ class PcaPwm():
 
 class Servo():
     """Manage state for a specific PWM pin connected to a servo."""
-    def __init__(self, comms: PcaPwm, servo_id: int, min_out: list[int] = [90, 750], max_out: list[int] = [90, 1500], home: int = 0) -> None:
+    def __init__(self, comms: PcaPwm, servo_id: int, min_out: list[int] = [90, 750], max_out: list[int] = [90, 1500], home: float = 0.0) -> None:
         """Initialize parameters of the servo and drive it to home."""
         self._comms = comms
         self._servo_id = servo_id
@@ -130,7 +130,7 @@ class Servo():
         self._min_out = min_out
         self._max_out = max_out
         self._home = home
-        self.set_target(self._home)
+        self.set_angle(self._home)
 
     def set_target(self, target: int) -> int:
         """Set the desired pwm value of the servo (not angle).
