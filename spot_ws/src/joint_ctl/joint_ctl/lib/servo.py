@@ -36,40 +36,48 @@ class PcaPwm():
     """
     def __init__(self, channel: int, address: int = 0x40) -> None:
         self._osc = 25E6 # internal oscillator frequency
+        self._mode_addx = 0x00
+        self._mode_restart = 0x80
+        self._mode_sleep = 0x10
+        self._prescale_addx = 0xFE
+
         self._reset_pin = 17 # header pin 11, gpio pin 17
+
         self._address = address
         self._bus = SMBus(channel)
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._reset_pin, GPIO.OUT)
 
-        # TODO: set oscillator frequency to 25000000 (datasheet internal osc freq)
-        self.frequency(60) # based on NovaSM3 experiments 
+        self.set_frequency(60) # based on NovaSM3 experiments 
         self.enable()
 
-    # TODO: getter and setter
-    def frequency(self, freq: int) -> None:
+    def get_frequency(self):
+        return self._osc/(4095*(self._clamped_prescale + 1))
+
+    def set_frequency(self, freq: int) -> None:
         prescale = self._osc/(4096*freq) - 1
         # min of 3   => 1526Hz
         # max of 255 => 24Hz
-        clamped_prescale = int(max(3, min(prescale, 255)))
-        prescale_bytes = clamped_prescale.to_bytes(1, "little")
+        self._clamped_prescale = int(max(3, min(prescale, 255)))
         try:
             # read mode1
-            mode1 = self._bus.read_byte_data(self._address, 0x00)
-            print(mode1)
-            # write to set it to not reset and sleep
-            temp_mode = (mode1 & ~0x80) | 0x10 
-            # set extclock bits
-            self._bus.write_byte_data(self._address, 0x00, temp_mode)
+            mode1 = self._bus.read_byte_data(self._address, self._mode_addx)
+            # write to set it to not restart and sleep
+            temp_mode = (mode1 & ~self._mode_restart) | self._mode_sleep
+            self._bus.write_byte_data(self._address, self._mode_addx, temp_mode)
+
             # set prescale
-            self._bus.write_byte_data(self._address, 0xFE, prescale_bytes[0])
-            # set old mode1
-            self._bus.write_byte_data(self._address, 0x00, mode1)
-            # delay 5ms
+            self._bus.write_byte_data(self._address, self._prescale_addx, self._clamped_prescale)
+            
+            # disable sleep
+            new_mode = mode1 & ~self._mode_sleep
+            self._bus.write_byte_data(self._address, self._mode_addx, new_mode)
+
+            # delay 5ms and restart
             time.sleep(0.005)
-            # clear sleep bit in mode1
-            self._bus.write_byte_data(self._address, 0x00, mode1 | 0x80)
+            new_mode = new_mode | self._mode_restart
+            self._bus.write_byte_data(self._address, self._mode_addx, new_mode)
         except:
             logging.get_logger("PcaPwm").info("ERROR: couldn't write frequency to PWM controller")
 
@@ -98,12 +106,13 @@ class PcaPwm():
         # NOTE: there is an individual disable bit in the high register for
         # each pin. It's currently unused.
 
-        pwm_bytes = pwm.to_bytes(2, "little")
+        pwm_lo = pwm & 0xFF
+        pwm_hi = (pwm >> 8) & 0xFF
         try:
             self._bus.write_byte_data(self._address, (6+4*pin), 0)
             self._bus.write_byte_data(self._address, (6+4*pin + 1), 0)
-            self._bus.write_byte_data(self._address, (6+4*pin + 2), pwm_bytes[0]) # off LO
-            self._bus.write_byte_data(self._address, (6+4*pin + 3), pwm_bytes[1]) # off HI
+            self._bus.write_byte_data(self._address, (6+4*pin + 2), pwm_lo) # off LO
+            self._bus.write_byte_data(self._address, (6+4*pin + 3), pwm_hi) # off HI
         except:
             logging.get_logger("PcaPwm").info("ERROR: couldn't write duty cycle to pwm controller")
 

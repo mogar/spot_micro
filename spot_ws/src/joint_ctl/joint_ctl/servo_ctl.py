@@ -30,7 +30,6 @@ class SpotJoints(Node):
 
     def joint_msg_callback(self, msg) -> None:
         """Send joint angles from received message to servo controller hardware."""
-        self.get_logger().info("fls: " + str(msg.fls))
         self._fls_servo.set_angle(msg.fls)
         # TODO: other joints
 
