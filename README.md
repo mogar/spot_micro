@@ -32,6 +32,7 @@ Check out the launch files in `spot_ws/launch` for examples of what you can do.
 
 ## TODO:
 
+* better interpolation function for servo targets
 * walking controller node
 * walking gait
 * make sure nodes/processes finish cleanly on ctl-c

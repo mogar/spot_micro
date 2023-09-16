@@ -17,21 +17,21 @@ class SpotJoints(Node):
         self._controller = PcaPwm(channel = 1)
         
         # Front Left Leg
-        self._fls_servo = Servo(self._controller, 3, min_out = [-90.0, 402], max_out = [90.0, 282]) # front-left shoulder
-        self._fle_servo = Servo(self._controller, 4, min_out = [-90.0, 537], max_out = [90.0, 207]) # front-left elbow
-        self._flw_servo = Servo(self._controller, 5, min_out = [-90.0, 370], max_out = [90.0, 128]) # front-left wrist
+        self._fls_servo = Servo(self._controller, 3, min_out = [-30.0, 450], max_out = [30.0, 350]) # front-left shoulder
+        self._fle_servo = Servo(self._controller, 4, min_out = [-78.0, 530], max_out = [78.0, 270]) # front-left elbow
+        self._flw_servo = Servo(self._controller, 5, min_out = [-60.0, 460], max_out = [60.0, 260]) # front-left wrist
         # Front Right Leg
-        self._frs_servo = Servo(self._controller, 0, min_out = [-90.0, 314], max_out = [90.0, 434]) # front-right shoulder
-        self._fre_servo = Servo(self._controller, 1, min_out = [-90.0, 185], max_out = [90.0, 515]) # front-right elbow
-        self._frw_servo = Servo(self._controller, 2, min_out = [-90.0, 365], max_out = [90.0, 607]) # front-right wrist
+        self._frs_servo = Servo(self._controller, 0, min_out = [-30.0, 330], max_out = [30.0, 450]) # front-right shoulder
+        self._fre_servo = Servo(self._controller, 1, min_out = [-78.0, 220], max_out = [78.0, 480]) # front-right elbow
+        self._frw_servo = Servo(self._controller, 2, min_out = [-60.0, 300], max_out = [60.0, 500]) # front-right wrist
         # Back Left Leg
-        self._bls_servo = Servo(self._controller, 9, min_out = [-90.0, 402], max_out = [90.0, 282]) # back-left shoulder
-        self._ble_servo = Servo(self._controller, 10, min_out = [-90.0, 446], max_out = [90.0, 116]) # back-left elbow
-        self._blw_servo = Servo(self._controller, 11, min_out = [-90.0, 358], max_out = [90.0, 116]) # back-left wrist
+        self._bls_servo = Servo(self._controller, 9, min_out = [-30.0, 415], max_out = [30.0, 315]) # back-left shoulder
+        self._ble_servo = Servo(self._controller, 10, min_out = [-78.0, 550], max_out = [78.0, 290]) # back-left elbow
+        self._blw_servo = Servo(self._controller, 11, min_out = [-60.0, 470], max_out = [60.0, 270]) # back-left wrist
         # Back Right Leg
-        self._brs_servo = Servo(self._controller, 6, min_out = [-90.0, 329], max_out = [90.0, 449]) # back-right shoulder
-        self._bre_servo = Servo(self._controller, 7, min_out = [-90.0, 236], max_out = [90.0, 566]) # back-right elbow
-        self._brw_servo = Servo(self._controller, 8, min_out = [-90.0, 278], max_out = [90.0, 520]) # back-right wrist
+        self._brs_servo = Servo(self._controller, 6, min_out = [-30.0, 320], max_out = [30.0, 420]) # back-right shoulder
+        self._bre_servo = Servo(self._controller, 7, min_out = [-78.0, 210], max_out = [78.0, 470]) # back-right elbow
+        self._brw_servo = Servo(self._controller, 8, min_out = [-60.0, 290], max_out = [60.0, 490]) # back-right wrist
 
         self._joint_sub = self.create_subscription(
             JointAngles,
@@ -45,22 +45,21 @@ class SpotJoints(Node):
     def joint_msg_callback(self, msg) -> None:
         """Send joint angles from received message to servo controller hardware."""
         # front left leg
-        self._fls_servo.set_angle(msg.fls)
-        self._fle_servo.set_angle(msg.fle)
-        self._flw_servo.set_angle(msg.flw)
+        self._fls_servo.set_angle_deg(msg.fls)
+        self._fle_servo.set_angle_deg(msg.fle)
+        self._flw_servo.set_angle_deg(msg.flw)
         # front left leg
-        self._frs_servo.set_angle(msg.frs)
-        self._fre_servo.set_angle(msg.fre)
-        self._frw_servo.set_angle(msg.frw)
+        self._frs_servo.set_angle_deg(msg.frs)
+        self._fre_servo.set_angle_deg(msg.fre)
+        self._frw_servo.set_angle_deg(msg.frw)
         # front left leg
-        self._bls_servo.set_angle(msg.bls)
-        self._ble_servo.set_angle(msg.ble)
-        self._blw_servo.set_angle(msg.blw)
+        self._bls_servo.set_angle_deg(msg.bls)
+        self._ble_servo.set_angle_deg(msg.ble)
+        self._blw_servo.set_angle_deg(msg.blw)
         # front left leg
-        self._brs_servo.set_angle(msg.brs)
-        self._bre_servo.set_angle(msg.bre)
-        self._brw_servo.set_angle(msg.brw)
-
+        self._brs_servo.set_angle_deg(msg.brs)
+        self._bre_servo.set_angle_deg(msg.bre)
+        self._brw_servo.set_angle_deg(msg.brw)
 
 def main(args=None) -> None:
     rclpy.init(args=args)

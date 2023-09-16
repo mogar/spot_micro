@@ -45,9 +45,9 @@ class Joy2Joints(Node):
         self._switch_pressed = False
 
         # starting default angles
-        self._shoulder_angle = 0
-        self._elbow_angle = 0
-        self._wrist_angle = 0
+        self._shoulder_angle = 0.0
+        self._elbow_angle = 0.0
+        self._wrist_angle = 0.0
 
     def joy_callback(self, msg) -> None:
         """Populate and send a joint servo message based on an incoming joy message."""
