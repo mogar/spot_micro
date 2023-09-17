@@ -50,7 +50,7 @@ class Joy2Joints(Node):
         self._wrist_angle = 0.0
 
     def joy_callback(self, msg) -> None:
-        """Populate and send a joint servo message based on an incoming joy message."""
+        """Populate and joint servo angles based on an incoming joy message."""
 
         # It's useful to uncomment the below and run this node standalone if you're having
         # issues with button/axis identification on your gamepad. Just run it and view the
