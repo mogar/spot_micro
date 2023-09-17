@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'joy2joints = commanding.joy2joints:main'
+            'joy2joints = commanding.joy2joints:main',
+            'joy2cmd = commanding.joy2cmd:main'
         ],
     },
 )
