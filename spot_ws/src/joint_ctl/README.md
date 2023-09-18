@@ -31,3 +31,7 @@ i2cdetect -y 1
 ```
 
 You should see it appear in the address table printed out.
+
+## Servo Connections
+
+The servos should be connected to the correct pins on the PWM board. Check out the `joint_ctl/servo_ctl.py` file to see the pin numbering I chose for each servo.

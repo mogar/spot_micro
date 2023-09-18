@@ -2,7 +2,9 @@
 import rclpy
 from rclpy.node import Node
 
-from spot_interfaces.msg import JointAngles, SpotMotionCommand
+from spot_interfaces.msg import JointAngles
+from geometry_msgs.msg import Twist
+
 
 class gait_control(Node):
     """
@@ -13,11 +15,14 @@ class gait_control(Node):
         """Setup pubs and subs, initialize null command."""
         super().__init__('gait_control')
         self._joint_pub = self.create_publisher(JointAngles, 'joints', 10)
-        self._spot_cmd_sub = self.create_subscription(SpotMotionCommand, "spot_command", self.command_callback, 10)
+        self._spot_cmd_sub = self.create_subscription(Twist, "twist", self.command_callback, 10)
         self._spot_cmd_sub # prevent unused variable warning
 
         # Set up parameters used in parsing joy messages
         self.declare_parameter('publish_period_s', 0.01) # TODO: fine tune this value
+
+        # Set up gait parameters
+        self.declare_parameter('speed_deadzone', 0.1) # TODO: fine tune valu
 
         self.get_logger().info("gait_control initialized")
 
@@ -25,7 +30,7 @@ class gait_control(Node):
         self.create_timer(self.get_parameter('publish_period_s').value, self.joint_publisher)
 
         # record most recent command
-        self._cmd = SpotMotionCommand()
+        self._cmd = Twist()
 
     def command_callback(self, msg) -> None:
         """Store the most recent command for reference in the timed control loop."""

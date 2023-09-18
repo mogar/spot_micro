@@ -16,6 +16,8 @@ class SpotJoints(Node):
 
         self._controller = PcaPwm(channel = 1)
         
+        # TODO: parametrize servo pin IDs?
+
         # Front Left Leg
         self._fls_servo = Servo(self._controller, 3, min_out = [-30.0, 450], max_out = [30.0, 350]) # front-left shoulder
         self._fle_servo = Servo(self._controller, 4, min_out = [-78.0, 530], max_out = [78.0, 270]) # front-left elbow

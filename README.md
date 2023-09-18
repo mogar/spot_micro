@@ -1,6 +1,6 @@
 # Spot Micro Experiments
 
-* docker-full: a ROS2 dockerfile for use on an RPi4
+* docker-full: a ROS2 Humble dockerfile for use on an RPi4
 * spot_ws: a ROS2 workspace containing all custom packages to control a Spot Micro
 
 ## Robot Hardware
@@ -17,6 +17,8 @@ Some of this software is based on the [spot-mini-mini repo from OpenQuadruped](h
 
 ## Usage
 
+NOTE: There are a lot of parameters you may want to tweak for your robot. The most important are probably servo pin numbers, which are hardcoded in `spot_ws/src/joint_ctl/joint_ctl/servo_ctl.py`
+
 * Set up the RPi 4, install docker on it, build the docker image from `docker-full`
 * start the docker container and get a shell on it (see instructions in `docker-full` README)
 * within docker, run the following
@@ -32,8 +34,8 @@ Check out the launch files in `spot_ws/launch` for examples of what you can do.
 
 ## TODO:
 
-* joy 2 control node
-* populate control message
 * walking gait
+* estop into servo controller?
+  * rigid-halt or go limp?
 * make sure nodes/processes finish cleanly on ctl-c
 * electronics diagrams
