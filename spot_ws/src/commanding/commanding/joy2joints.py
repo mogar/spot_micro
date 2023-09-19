@@ -15,7 +15,7 @@ class Joy2Joints(Node):
     def __init__(self) -> None:
         """Initialize button and stick configuration, setup pubs and subs."""
         super().__init__('joy2joints')
-        self._joint_pub = self.create_publisher(JointAngles, 'joints', 10)
+        self._joint_pub = self.create_publisher(JointAngles, 'target_joints', 10)
         self._joy_sub = self.create_subscription(Joy, "joy", self.joy_callback, 10)
         self._joy_sub # prevent unused variable warning
 

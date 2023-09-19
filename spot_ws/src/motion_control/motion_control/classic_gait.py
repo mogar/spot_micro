@@ -14,7 +14,8 @@ class gait_control(Node):
     def __init__(self) -> None:
         """Setup pubs and subs, initialize null command."""
         super().__init__('gait_control')
-        self._joint_pub = self.create_publisher(JointAngles, 'joints', 10)
+        self._joint_pub = self.create_publisher(JointAngles, 'target_joints', 10)
+        self._current_joints_sub = self.create_subscription(JointAngles, "current_joints", self.current_joints_callback, 10)
         self._spot_cmd_sub = self.create_subscription(Twist, "twist", self.command_callback, 10)
         self._spot_cmd_sub # prevent unused variable warning
 
@@ -31,17 +32,24 @@ class gait_control(Node):
 
         # record most recent command
         self._cmd = Twist()
+        # record current joint angles
+        self._current_joints = JointAngles()
+
+    def current_joints_callback(self, msg) -> None:
+        """Store the current joint angles for use in calculating target future joint angles."""
+        self._current_joints = msg
 
     def command_callback(self, msg) -> None:
         """Store the most recent command for reference in the timed control loop."""
         self._cmd = msg
 
     def joint_publisher(self):
-        joint_msg = JointAngles()
+        target_joints_msg = JointAngles()
 
+        # TODO: check for deadzone in x,y separately from z
         # TODO: gait command
 
-        self._joint_pub.publish(joint_msg)
+        self._joint_pub.publish(target_joints_msg)
 
 
 def main(args=None) -> None:
