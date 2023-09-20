@@ -4,6 +4,7 @@ from rclpy.node import Node
 
 from spot_interfaces.msg import JointAngles
 from geometry_msgs.msg import Twist
+from spot_interfaces.msg import StateCmd
 
 from motion_control.lib.state import SitState
 
@@ -17,8 +18,10 @@ class gait_control(Node):
         super().__init__('gait_control')
         self._joint_pub = self.create_publisher(JointAngles, 'target_joints', 10)
         self._current_joints_sub = self.create_subscription(JointAngles, "current_joints", self.current_joints_callback, 10)
-        self._spot_cmd_sub = self.create_subscription(Twist, "twist", self.command_callback, 10)
-        self._spot_cmd_sub # prevent unused variable warning
+        self._twist_cmd_sub = self.create_subscription(Twist, "twist", self.cmd_callback, 10)
+        self._twist_cmd_sub # prevent unused variable warning
+        self._state_cmd_sub = self.create_subscription(StateCmd, "state_cmd", self.state_cmd_callback, 10)
+        self._state_cmd_sub # prevent unused variable warning
 
         # Set up parameters used in parsing joy messages
         self.declare_parameter('publish_period_s', 0.01) # TODO: fine tune this value
@@ -33,8 +36,11 @@ class gait_control(Node):
 
         # State for state machine handling motion control
         self._motion_state = SitState()
-        # record most recent command
+        # record most recent twist command
         self._cmd = Twist()
+        # record most recent state command
+        self._state_cmd = StateCmd()
+        self._state_cmd.sit = 1 # start sitting
         # record current joint angles
         self._current_joints = JointAngles()
 
@@ -42,13 +48,17 @@ class gait_control(Node):
         """Store the current joint angles for use in calculating target future joint angles."""
         self._current_joints = msg
 
-    def command_callback(self, msg) -> None:
-        """Store the most recent command for reference in the timed control loop."""
+    def cmd_callback(self, msg) -> None:
+        """Store the most recent twist command for reference in the timed control loop."""
         self._cmd = msg
 
+    def state_cmd_callback(self, msg) -> None:
+        """Store the most recent state command for reference in the timed control loop."""
+        self._state_cmd = msg
+
     def joint_publisher(self):
-        self._motion_state = self._motion_state.next_state_from_cmd(self._cmd)
-        target_joints_msg = self._motion_state.joint_angles_from_cmd(self._current_joints, self._cmd)
+        self._motion_state = self._motion_state.next_state_from_cmd(self._cmd, self._state_cmd)
+        target_joints_msg = self._motion_state.joint_angles_from_cmd(self._current_joints, self._cmd, self._state_cmd)
 
         self._joint_pub.publish(target_joints_msg)
 

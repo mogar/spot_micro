@@ -5,6 +5,7 @@ from rclpy.node import Node
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
+from spot_interfaces.msg import StateCmd
 
 class Joy2Cmd(Node):
     """
@@ -18,6 +19,7 @@ class Joy2Cmd(Node):
         super().__init__('joy2cmd')
         self._estop_pub = self.create_publisher(Bool, 'estop', 10)
         self._cmd_pub = self.create_publisher(Twist, 'twist', 10)
+        self._state_cmd_pub = self.create_publisher(StateCmd, 'state_cmd', 10)
         self._joy_sub = self.create_subscription(Joy, "joy", self.joy_callback, 10)
         self._joy_sub # prevent unused variable warning
 
@@ -27,6 +29,9 @@ class Joy2Cmd(Node):
         # estop tracking
         self._estop = False
         self._estop_button_pressed = False
+        # Start in sitting position
+        self._sit = 1
+        self._sit_button_pressed = False
 
         # Set up parameters used in parsing joy messages
         self.declare_parameter('publish_period_s', 0.02)
@@ -62,11 +67,12 @@ class Joy2Cmd(Node):
 
     def cmd_publisher(self):
         if self._joy_msg is None:
-            # wait until we have a real message
+            # wait until we have a real message to publish any twist
             return
 
         # estop message
         # TODO: timed debouncing here if needed
+        # TODO: function for debouncing and press/hold?
         if self._joy_msg.buttons[self.get_parameter('button_estop').value]:
             if not self._estop_button_pressed:
                 self._estop_button_pressed = True
@@ -77,6 +83,21 @@ class Joy2Cmd(Node):
         estop_msg = Bool()
         estop_msg.data = self._estop
         self._estop_pub.publish(estop_msg)
+
+        # State Commands
+        if self._joy_msg.buttons[self.get_parameter('button_switch').value]:
+            if not self._sit_button_pressed:
+                self._sit_button_pressed = True
+                if self._sit == 0:
+                    self._sit = 1
+                else:
+                    self._sit = 0
+        else:
+            self._sit_button_pressed = False
+
+        state_cmd = StateCmd()
+        state_cmd.sit = self._sit
+        self._state_cmd_pub.publish(state_cmd)
 
         # Twist message
         cmd_msg = Twist()
