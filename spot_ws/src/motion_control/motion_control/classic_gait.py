@@ -5,6 +5,7 @@ from rclpy.node import Node
 from spot_interfaces.msg import JointAngles
 from geometry_msgs.msg import Twist
 
+from motion_control.lib.state import SitState
 
 class gait_control(Node):
     """
@@ -30,6 +31,8 @@ class gait_control(Node):
         # create a timer to publish the command at the right rate
         self.create_timer(self.get_parameter('publish_period_s').value, self.joint_publisher)
 
+        # State for state machine handling motion control
+        self._motion_state = SitState()
         # record most recent command
         self._cmd = Twist()
         # record current joint angles
@@ -44,10 +47,8 @@ class gait_control(Node):
         self._cmd = msg
 
     def joint_publisher(self):
-        target_joints_msg = JointAngles()
-
-        # TODO: check for deadzone in x,y separately from z
-        # TODO: gait command
+        self._motion_state = self._motion_state.next_state_from_cmd(self._cmd)
+        target_joints_msg = self._motion_state.joint_angles_from_cmd(self._current_joints, self._cmd)
 
         self._joint_pub.publish(target_joints_msg)
 
