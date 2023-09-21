@@ -21,19 +21,19 @@ class SpotJoints(Node):
         # Front Left Leg
         self._fls_servo = Servo(self._controller, 3, min_out = [-30.0, 450], max_out = [30.0, 350]) # front-left shoulder
         self._fle_servo = Servo(self._controller, 4, min_out = [-78.0, 530], max_out = [78.0, 270]) # front-left elbow
-        self._flw_servo = Servo(self._controller, 5, min_out = [-60.0, 460], max_out = [60.0, 260]) # front-left wrist
+        self._flw_servo = Servo(self._controller, 5, min_out = [-60.0, 460], max_out = [90.0, 110]) # front-left wrist
         # Front Right Leg
         self._frs_servo = Servo(self._controller, 0, min_out = [-30.0, 330], max_out = [30.0, 450]) # front-right shoulder
         self._fre_servo = Servo(self._controller, 1, min_out = [-78.0, 220], max_out = [78.0, 480]) # front-right elbow
-        self._frw_servo = Servo(self._controller, 2, min_out = [-60.0, 300], max_out = [60.0, 500]) # front-right wrist
+        self._frw_servo = Servo(self._controller, 2, min_out = [-60.0, 300], max_out = [90.0, 650]) # front-right wrist
         # Back Left Leg
         self._bls_servo = Servo(self._controller, 9, min_out = [-30.0, 415], max_out = [30.0, 315]) # back-left shoulder
         self._ble_servo = Servo(self._controller, 10, min_out = [-78.0, 550], max_out = [78.0, 290]) # back-left elbow
-        self._blw_servo = Servo(self._controller, 11, min_out = [-60.0, 470], max_out = [60.0, 270]) # back-left wrist
+        self._blw_servo = Servo(self._controller, 11, min_out = [-60.0, 470], max_out = [90.0, 120]) # back-left wrist
         # Back Right Leg
         self._brs_servo = Servo(self._controller, 6, min_out = [-30.0, 320], max_out = [30.0, 420]) # back-right shoulder
         self._bre_servo = Servo(self._controller, 7, min_out = [-78.0, 210], max_out = [78.0, 470]) # back-right elbow
-        self._brw_servo = Servo(self._controller, 8, min_out = [-60.0, 290], max_out = [60.0, 490]) # back-right wrist
+        self._brw_servo = Servo(self._controller, 8, min_out = [-60.0, 290], max_out = [90.0, 640]) # back-right wrist
 
         self._target_joint_sub = self.create_subscription(
             JointAngles,
@@ -61,15 +61,15 @@ class SpotJoints(Node):
         current_joint_angles.fls = self._fls_servo.set_angle_deg(msg.fls)
         current_joint_angles.fle = self._fle_servo.set_angle_deg(msg.fle)
         current_joint_angles.flw = self._flw_servo.set_angle_deg(msg.flw)
-        # front left leg
+        # front right leg
         current_joint_angles.frs = self._frs_servo.set_angle_deg(msg.frs)
         current_joint_angles.fre = self._fre_servo.set_angle_deg(msg.fre)
         current_joint_angles.frw = self._frw_servo.set_angle_deg(msg.frw)
-        # front left leg
+        # back left leg
         current_joint_angles.bls = self._bls_servo.set_angle_deg(msg.bls)
         current_joint_angles.ble = self._ble_servo.set_angle_deg(msg.ble)
         current_joint_angles.blw = self._blw_servo.set_angle_deg(msg.blw)
-        # front left leg
+        # back right leg
         current_joint_angles.brs = self._brs_servo.set_angle_deg(msg.brs)
         current_joint_angles.bre = self._bre_servo.set_angle_deg(msg.bre)
         current_joint_angles.brw = self._brw_servo.set_angle_deg(msg.brw)

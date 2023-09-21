@@ -24,14 +24,14 @@ class gait_control(Node):
         self._state_cmd_sub # prevent unused variable warning
 
         # Set up parameters used in parsing joy messages
-        self.declare_parameter('publish_period_s', 0.01) # TODO: fine tune this value
+        self.declare_parameter('publish_period_s', 0.02)
 
         # Set up gait parameters
-        self.declare_parameter('speed_deadzone', 0.1) # TODO: fine tune valu
-
-        self.get_logger().info("gait_control initialized")
+        self.declare_parameter('speed_deadzone', 0.01) # TODO: fine tune value
+        self.declare_parameter('max_angle_delta_per_s', 30)
 
         # create a timer to publish the command at the right rate
+        self._max_angle_delta = self.get_parameter('publish_period_s').value * self.get_parameter('max_angle_delta_per_s').value
         self.create_timer(self.get_parameter('publish_period_s').value, self.joint_publisher)
 
         # State for state machine handling motion control
@@ -43,6 +43,9 @@ class gait_control(Node):
         self._state_cmd.sit = 1 # start sitting
         # record current joint angles
         self._current_joints = JointAngles()
+
+        self.get_logger().info("gait_control initialized")
+
 
     def current_joints_callback(self, msg) -> None:
         """Store the current joint angles for use in calculating target future joint angles."""
@@ -58,7 +61,7 @@ class gait_control(Node):
 
     def joint_publisher(self):
         self._motion_state = self._motion_state.next_state_from_cmd(self._cmd, self._state_cmd)
-        target_joints_msg = self._motion_state.joint_angles_from_cmd(self._current_joints, self._cmd, self._state_cmd)
+        target_joints_msg = self._motion_state.joint_angles_from_cmd(self._current_joints, self._cmd, self._state_cmd, self._max_angle_delta)
 
         self._joint_pub.publish(target_joints_msg)
 

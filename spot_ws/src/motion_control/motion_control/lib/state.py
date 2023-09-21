@@ -5,6 +5,19 @@ from spot_interfaces.msg import JointAngles
 from geometry_msgs.msg import Twist
 from spot_interfaces.msg import StateCmd
 
+
+# TODO: smooth all joints together, instead of one at a time
+def one_step_interp(start_angle, end_angle, max_angle_delta):
+    max_positive_increment = max_angle_delta
+    max_negative_increment = -1 * max_positive_increment
+
+    delta_angle = end_angle - start_angle
+    # clamp
+    delta_angle = max(max_negative_increment, min(delta_angle, max_positive_increment))
+
+    return start_angle + delta_angle
+
+
 class BaseState():
     """
     Base class for a state machine to handle motion (and stationary poses) of a 
@@ -23,9 +36,29 @@ class BaseState():
         return current_angles
 
 class SitState(BaseState):
+    """
+    Class to handle the sitting state of a spot micro. Includes functionality
+    to transition from a non-sitting pose to a sitting pose.
+    """
+
     def __init__(self):
         self._sit_angles = JointAngles()
-        # TODO: fill in _sit_angles with what a sit should actually look like
+        # Front Left Leg
+        self._sit_angles.fls = 0.0
+        self._sit_angles.fle = 20.0
+        self._sit_angles.flw = 20.0
+        # Front Right Leg
+        self._sit_angles.frs = 0.0
+        self._sit_angles.fre = 20.0
+        self._sit_angles.frw = 20.0
+        # Back Left Leg
+        self._sit_angles.bls = 0.0
+        self._sit_angles.ble = -45.0
+        self._sit_angles.blw = 60.0
+        # Back Right Leg
+        self._sit_angles.brs = 0.0
+        self._sit_angles.bre = -45.0
+        self._sit_angles.brw = 60.0
 
     def next_state_from_cmd(self, cmd, state_cmd):
         if state_cmd.sit == 0:
@@ -33,21 +66,51 @@ class SitState(BaseState):
             return StandState()
         return self
 
-    def joint_angles_from_cmd(self, current_angles, cmd, state_cmd):
-        # TODO: if current_angles isn't sit_angles, move
-        return current_angles
+    def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
+        target_angles = JointAngles()
+        target_angles.fls = one_step_interp(current_angles.fls, self._sit_angles.fls, max_angle_delta)
+        target_angles.fle = one_step_interp(current_angles.fle, self._sit_angles.fle, max_angle_delta)
+        target_angles.flw = one_step_interp(current_angles.flw, self._sit_angles.flw, max_angle_delta)
+        target_angles.frs = one_step_interp(current_angles.frs, self._sit_angles.frs, max_angle_delta)
+        target_angles.fre = one_step_interp(current_angles.fre, self._sit_angles.fre, max_angle_delta)
+        target_angles.frw = one_step_interp(current_angles.frw, self._sit_angles.frw, max_angle_delta)
+        target_angles.bls = one_step_interp(current_angles.bls, self._sit_angles.bls, max_angle_delta)
+        target_angles.ble = one_step_interp(current_angles.ble, self._sit_angles.ble, max_angle_delta)
+        target_angles.blw = one_step_interp(current_angles.blw, self._sit_angles.blw, max_angle_delta)
+        target_angles.brs = one_step_interp(current_angles.brs, self._sit_angles.brs, max_angle_delta)
+        target_angles.bre = one_step_interp(current_angles.bre, self._sit_angles.bre, max_angle_delta)
+        target_angles.brw = one_step_interp(current_angles.brw, self._sit_angles.brw, max_angle_delta)
+        return target_angles
 
 class StandState(BaseState):
+    """
+    Class to handle the standing state of a spot micro. Includes functionality
+    to transition from a non-standing pose to a standing pose.
+    """
     def __init__(self):
+        # stand state is all 0 angles (spot micro is calibrated to standing)
         self._stand_angles = JointAngles()
-        # TODO: fill in _stand_angles with what a stand should actually look like
 
     def next_state_from_cmd(self, cmd, state_cmd):
         if state_cmd.sit != 0:
             logging.get_logger("StandState").info("transition to sit")
             return SitState()
+        # TODO: check twist_cmd for high velocity and move to walking
         return self
 
-    def joint_angles_from_cmd(self, current_angles, cmd, state_cmd):
-        # TODO: if current_angles isn't stand_angles, move
-        return current_angles
+    def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
+        # TODO: look at z-twist to see if we should raise/lower, etc.
+        target_angles = JointAngles()
+        target_angles.fls = one_step_interp(current_angles.fls, self._stand_angles.fls, max_angle_delta)
+        target_angles.fle = one_step_interp(current_angles.fle, self._stand_angles.fle, max_angle_delta)
+        target_angles.flw = one_step_interp(current_angles.flw, self._stand_angles.flw, max_angle_delta)
+        target_angles.frs = one_step_interp(current_angles.frs, self._stand_angles.frs, max_angle_delta)
+        target_angles.fre = one_step_interp(current_angles.fre, self._stand_angles.fre, max_angle_delta)
+        target_angles.frw = one_step_interp(current_angles.frw, self._stand_angles.frw, max_angle_delta)
+        target_angles.bls = one_step_interp(current_angles.bls, self._stand_angles.bls, max_angle_delta)
+        target_angles.ble = one_step_interp(current_angles.ble, self._stand_angles.ble, max_angle_delta)
+        target_angles.blw = one_step_interp(current_angles.blw, self._stand_angles.blw, max_angle_delta)
+        target_angles.brs = one_step_interp(current_angles.brs, self._stand_angles.brs, max_angle_delta)
+        target_angles.bre = one_step_interp(current_angles.bre, self._stand_angles.bre, max_angle_delta)
+        target_angles.brw = one_step_interp(current_angles.brw, self._stand_angles.brw, max_angle_delta)
+        return target_angles
