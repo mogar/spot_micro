@@ -5,6 +5,8 @@ from spot_interfaces.msg import JointAngles
 from geometry_msgs.msg import Twist
 from spot_interfaces.msg import StateCmd
 
+from motion_control.lib.walking import WalkManager
+
 
 # TODO: smooth all joints together, instead of one at a time
 def one_step_interp(start_angle, end_angle, max_angle_delta):
@@ -114,3 +116,19 @@ class StandState(BaseState):
         target_angles.bre = one_step_interp(current_angles.bre, self._stand_angles.bre, max_angle_delta)
         target_angles.brw = one_step_interp(current_angles.brw, self._stand_angles.brw, max_angle_delta)
         return target_angles
+
+    class StandState(BaseState):
+        """
+        Class to handle the walking state of a spot micro. Mostly serves as a wrapper for the WalkManager class.
+        """
+        def __init__(self):
+            self._walk_mgr = WalkManager()
+
+        def next_state_from_cmd(self, cmd, state_cmd):
+            if self._walk_mgr.is_standing(cmd):
+                # switch to stand state if we're stationary and in stand stance
+                return StandState()
+            return self
+            
+        def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
+            return self._walk_mgr(current_angles, cmd, max_angle_delta)
