@@ -1,5 +1,6 @@
 
-from motion_control.lib.motion_utils import one_step_interp
+from motion_control.lib.motion_utils import one_step_interp, joint_angles_match
+import motion_control.lib.poses as poses
 
 
 class WalkManager():
@@ -38,6 +39,7 @@ class WalkManager():
 
     def is_standing(self, cmd):
         # TODO: check speed in cmd to see if we should be transitioning to stand
+        # TODO: check if we think we're standing from prior move command
         return True
 
     def new_joint_angles(self, current_angles, cmd, max_angle_delta):

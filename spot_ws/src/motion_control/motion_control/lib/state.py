@@ -7,6 +7,7 @@ from spot_interfaces.msg import StateCmd
 
 from motion_control.lib.walking import WalkManager
 from motion_control.lib.motion_utils import one_step_interp
+import motion_control.lib.poses as poses
 
 
 class BaseState():
@@ -33,23 +34,7 @@ class SitState(BaseState):
     """
 
     def __init__(self):
-        self._sit_angles = JointAngles()
-        # Front Left Leg
-        self._sit_angles.fls = 0.0
-        self._sit_angles.fle = 20.0
-        self._sit_angles.flw = 20.0
-        # Front Right Leg
-        self._sit_angles.frs = 0.0
-        self._sit_angles.fre = 20.0
-        self._sit_angles.frw = 20.0
-        # Back Left Leg
-        self._sit_angles.bls = 0.0
-        self._sit_angles.ble = -45.0
-        self._sit_angles.blw = 60.0
-        # Back Right Leg
-        self._sit_angles.brs = 0.0
-        self._sit_angles.bre = -45.0
-        self._sit_angles.brw = 60.0
+        self._sit_angles = poses.get_sitting_pose()
 
     def next_state_from_cmd(self, cmd, state_cmd):
         if state_cmd.sit == 0:
@@ -79,8 +64,7 @@ class StandState(BaseState):
     to transition from a non-standing pose to a standing pose.
     """
     def __init__(self):
-        # stand state is all 0 angles (spot micro is calibrated to standing)
-        self._stand_angles = JointAngles()
+        self._stand_angles = poses.get_standing_pose()
 
     def next_state_from_cmd(self, cmd, state_cmd):
         if state_cmd.sit != 0:
@@ -106,18 +90,18 @@ class StandState(BaseState):
         target_angles.brw = one_step_interp(current_angles.brw, self._stand_angles.brw, max_angle_delta)
         return target_angles
 
-    class StandState(BaseState):
-        """
-        Class to handle the walking state of a spot micro. Mostly serves as a wrapper for the WalkManager class.
-        """
-        def __init__(self):
-            self._walk_mgr = WalkManager()
+class WalkState(BaseState):
+    """
+    Class to handle the walking state of a spot micro. Mostly serves as a wrapper for the WalkManager class.
+    """
+    def __init__(self):
+        self._walk_mgr = WalkManager()
 
-        def next_state_from_cmd(self, cmd, state_cmd):
-            if self._walk_mgr.is_standing(cmd):
-                # switch to stand state if we're stationary and in stand stance
-                return StandState()
-            return self
-            
-        def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
-            return self._walk_mgr(current_angles, cmd, max_angle_delta)
+    def next_state_from_cmd(self, cmd, state_cmd):
+        if self._walk_mgr.is_standing(cmd):
+            # switch to stand state if we're stationary and in stand stance
+            return StandState()
+        return self
+
+    def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
+        return self._walk_mgr(current_angles, cmd, max_angle_delta)
