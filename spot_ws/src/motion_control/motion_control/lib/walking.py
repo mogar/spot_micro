@@ -1,14 +1,19 @@
 
+from geometry_msgs.msg import Twist
+
+from spot_interfaces.msg import JointAngles
+
 import motion_control.lib.motion_utils as motion_utils
 import motion_control.lib.poses as poses
 
 
 class WalkManager():
-    def __init__(self):
+    def __init__(self) -> None:
         # walking states
         # transition to walk: 0
         # walking: 1
         # transitioning to stand: 2
+        # standing: 3
         self._walking_state = 0
 
         # track whether we are swinging a leg or shifting center of gravity
@@ -37,22 +42,26 @@ class WalkManager():
         self._stop_leg_wrist = -20.0 # TODO:
 
 
-    def is_standing(self, cmd):
-        # TODO: check speed in cmd to see if we should be transitioning to stand
-        # TODO: check if we think we're standing from prior move command
-        return True
+    def is_standing(self, cmd: Twist) -> bool:
+        # TODO: more robust speed checking
+        if (self._walking_state == 3) and (cmd.linear.y < 2):
+            return True
+        return False
 
-    def new_joint_angles(self, current_angles, cmd, max_angle_delta):
+    def new_joint_angles(self, current_angles: JointAngles, cmd: Twist, max_angle_delta: int) -> JointAngles:
         if self._walking_state == 2:
             return self.to_stand_angles(current_angles, max_angle_delta)
         else: # TODO: assuming walking and transition to walk can use same controller
             return self.walking_angles(current_angles, cmd, max_angle_delta)
 
-    def to_stand_angles(self, current_angles, max_angle_delta):
+    def to_stand_angles(self, current_angles: JointAngles, max_angle_delta: int) -> JointAngles:
         # TODO: calculate angles to return to standing
+
+        if motion_utils.joint_angles_match(current_angles, poses.get_standing_pose()):
+            self.walking_state = 3
         return current_angles
 
-    def walking_angles(self, current_angles, cmd, max_angle_delta):
+    def walking_angles(self, current_angles: JointAngles, cmd: Twist, max_angle_delta: int) -> JointAngles:
         # update leg phase
         self.update_phase(current_angles)
 
@@ -64,20 +73,23 @@ class WalkManager():
         else:
             return self.shift_center_of_gravity_angles(current_angles, speed)
 
-    def update_phase(self, current_angles):
-        # TODO: calculate whether we're swinging or shifting
-        self._swing_not_shift = True
-
+    def update_phase(self, current_angles: JointAngles) -> None:
         # TODO: check if current angles shows we're at the end of the phase
         # foot on the ground, shoulder forward
         # maybe have a "done leg pose" we're targeting
 
-        self._moving_leg += 1
-        if self._moving_leg >= self._num_legs:
-            self._moving_leg = 0
+        # TODO: calculate whether we're swinging or shifting
+        if self._swing_not_shift:
+            # TODO: check that swing is in final leg pose
+            self._swing_not_shift = False
+        else:
+            # TODO: check that shift is done
+            self._moving_leg += 1
+            if self._moving_leg >= self._num_legs:
+                self._moving_leg = 0
+            self._swing_not_shift = True
 
-
-    def triangular_interp_angles(self, current_angles, angle_speed):
+    def triangular_interp_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
         active_leg_angles = motion_utils.get_leg_angles_as_np_array(current_angles, self._moving_leg)
 
         if active_leg_angles[0] <= self._high_leg_shoulder:
@@ -95,6 +107,6 @@ class WalkManager():
         motion_utils.set_leg_angles_in_joint_angles(new_angles, active_leg_angles, self._moving_leg)
         return new_angles
 
-    def shift_center_of_gravity_angles(self, current_angles, angle_speed):
+    def shift_center_of_gravity_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
         # TODO:
         return current_angles
