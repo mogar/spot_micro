@@ -4,6 +4,57 @@ import numpy as np
 import numpy.typing as npt
 from spot_interfaces.msg import JointAngles
 
+
+def get_leg_angles_as_np_array(joints: JointAngles, leg_id: int) -> npt.NDArray:
+    leg_angles = np.zeros(3)
+    if leg_id == 0:
+        # FL
+        leg_angles[0] = joints.fls
+        leg_angles[1] = joints.fle
+        leg_angles[2] = joints.flw
+    elif leg_id == 1:
+        # FR
+        leg_angles[0] = joints.frs
+        leg_angles[1] = joints.fre
+        leg_angles[2] = joints.frw
+    elif leg_id == 2:
+        # BL
+        leg_angles[0] = joints.bls
+        leg_angles[1] = joints.ble
+        leg_angles[2] = joints.blw
+    else:
+        # BR
+        leg_angles[0] = joints.brs
+        leg_angles[1] = joints.bre
+        leg_angles[2] = joints.brw
+    return leg_angles
+
+def set_leg_angles_in_joint_angles(joints: JointAngles, leg_angles: npt.NDArray, leg_id: int):
+    if leg_angles.shape != (3,):
+        # wrong leg angles shape, make no changes
+        return
+
+    if leg_id == 0:
+        # FL
+        joints.fls = leg_angles[0]
+        joints.fle = leg_angles[1]
+        joints.flw = leg_angles[2]
+    elif leg_id == 1:
+        # FR
+        joints.frs = leg_angles[0]
+        joints.fre = leg_angles[1]
+        joints.frw = leg_angles[2]
+    elif leg_id == 2:
+        # BL
+        joints.bls = leg_angles[0]
+        joints.ble = leg_angles[1]
+        joints.blw = leg_angles[2]
+    else:
+        # BR
+        joints.brs = leg_angles[0]
+        joints.bre = leg_angles[1]
+        joints.brw = leg_angles[2]
+
 def joint_angles_to_np_array(joints: JointAngles) -> npt.NDArray:
     """Convert joint angles represented as a JointAngles object into a numpy array.
     """

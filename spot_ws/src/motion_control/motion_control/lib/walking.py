@@ -1,5 +1,5 @@
 
-from motion_control.lib.motion_utils import one_step_interp, joint_angles_match
+import motion_control.lib.motion_utils as motion_utils
 import motion_control.lib.poses as poses
 
 
@@ -78,52 +78,21 @@ class WalkManager():
 
 
     def triangular_interp_angles(self, current_angles, angle_speed):
-        if self._moving_leg == 0: # FL
-            active_shoulder = current_angles.fls
-            active_elbow = current_angles.fle
-            active_wrist = current_angles.flw
-        if self._moving_leg == 1: # FR
-            active_shoulder = current_angles.frs
-            active_elbow = current_angles.fre
-            active_wrist = current_angles.frw
-        if self._moving_leg == 2: # BL
-            active_shoulder = current_angles.bls
-            active_elbow = current_angles.ble
-            active_wrist = current_angles.blw
-        else: # BR
-            active_shoulder = current_angles.brs
-            active_elbow = current_angles.bre
-            active_wrist = current_angles.brw
+        active_leg_angles = motion_utils.get_leg_angles_as_np_array(current_angles, self._moving_leg)
 
-        if active_shoulder <= self._high_leg_shoulder:
+        if active_leg_angles[0] <= self._high_leg_shoulder:
             # ascending: leg angles interp up to top
-            active_shoulder = one_step_interp(active_shoulder, self._high_leg_shoulder, angle_speed)
-            active_elbow = one_step_interp(active_elbow, self._high_leg_elbow, angle_speed)
-            active_wrist = one_step_interp(active_wrist, self._high_leg_wrist, angle_speed)
+            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._high_leg_shoulder, angle_speed)
+            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._high_leg_elbow, angle_speed)
+            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._high_leg_wrist, angle_speed)
         else:
             # descending: leg angles interp down to stop
-            active_shoulder = one_step_interp(active_shoulder, self._stop_leg_shoulder, angle_speed)
-            active_elbow = one_step_interp(active_elbow, self._stop_leg_elbow, angle_speed)
-            active_wrist = one_step_interp(active_wrist, self._stop_leg_wrist, angle_speed)
+            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._stop_leg_shoulder, angle_speed)
+            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._stop_leg_elbow, angle_speed)
+            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._stop_leg_wrist, angle_speed)
 
         new_angles = copy.copy(current_angles)
-        if self._moving_leg == 0: # FL
-            new_angles.fls = active_shoulder
-            new_angles.fle = active_elbow
-            new_angles.flw = active_wrist
-        if self._moving_leg == 1: # FR
-            new_angles.frs = active_shoulder
-            new_angles.fre = active_elbow
-            new_angles.frw = active_wrist
-        if self._moving_leg == 2: # BL
-            new_angles.bls = active_shoulder
-            new_angles.ble = active_elbow
-            new_angles.blw = active_wrist
-        else: # BR
-            new_angles.brs = active_shoulder
-            new_angles.bre = active_elbow
-            new_angles.brw = active_wrist
-
+        motion_utils.set_leg_angles_in_joint_angles(new_angles, active_leg_angles, self._moving_leg)
         return new_angles
 
     def shift_center_of_gravity_angles(self, current_angles, angle_speed):
