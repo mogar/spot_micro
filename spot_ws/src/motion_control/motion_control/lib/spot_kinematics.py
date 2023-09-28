@@ -1,4 +1,4 @@
-""" Forward and Inverse Kinematics for a Spot Micro robot.
+"""Forward and Inverse Kinematics for a Spot Micro robot.
 
 This code is very heavily based on the great kinematics library from mike4192. Check it out:
 https://github.com/mike4192/spot_micro_kinematics_python/
@@ -11,30 +11,76 @@ International Journal of Scientific & Technology Research. 6.
 I didn't read the paper, I just read his code and adapted it for what I wanted.
 """
 
+from math import cos, sin, atan2
+
 import numpy as np
 import numpy.typing as npt
 
 class LegKinematics():
-    def __init__(self, hip_angle_rad: float = 0, elbow_angle_rad: float = 0, wrist_angle_rad: float = 0, hip_len_cm: float = 2, thigh_len_cm: float = 3, shin_len_cm: float = 4, body2leg_transform: npt.NDArray, right_not_left: bool) -> None:
+    """
+        base: joint 0 - the fixed point at which the leg hip rotates on the body
+        knee: joint 1 - the point at which the upper leg rotates around the hip, with orientation relative to hip
+        knee_orient: joint 2 - the point at which the upper leg rotates around the hip, but in cooardinates relative to upper leg
+        ankle: joint 3 - the point at which the lower leg rotates with respect to the upper leg
+        foot: joint 4 - the tip of the foot
+    """
+    def __init__(self, hip_angle_rad: float = 0, knee_angle_rad: float = 0, ankle_angle_rad: float = 0, hip_len_cm: float = 2, thigh_len_cm: float = 3, shin_len_cm: float = 4, body2leg_transform: npt.NDArray, right_not_left: bool) -> None:
         """Constructor."""
         self.hip_angle_rad = hip_angle_rad
-        self.elbow_angle_rad = elbow_angle_rad
-        self.wrist_angle_rad = wrist_angle_rad
+        self.knee_angle_rad = knee_angle_rad
+        self.ankle_angle_rad = ankle_angle_rad
         
         self.hip_len_cm = hip_len_cm
         self.thigh_len_cm = thigh_len_cm
         self.shin_len_cm = shin_len_cm
 
-        self.body2leg_transform = body2leg_transform
+        self.body2base_transform = body2leg_transform
         self.right_not_left = right_not_left
-        # TODO: tranformation matrices for joints
 
-    def set_angles(self, hip_angle_rad: float, elbow_angle_rad: float, wrist_angle_rad: float) -> None:
+        # update tranformation matrices for joints
+        self.update_hip_rotation_to_knee_transform()
+        self.update_knee_to_knee_orient_transform()
+        self.update_knee_orient_to_ankle_transform()
+        self.update_ankle_to_foot_transform()
+
+    def update_hip_rotation_to_knee_transform(self):
+        self.base2knee_transform = \
+                np.array([[cos(self.hip_angle_rad), -sin(self.hip_angle_rad), 0, -self.hip_angle_rad*cos(self.hip_angle_rad)],
+                          [sin(self.hip_angle_rad),  cos(self.hip_angle_rad), 0, -self.hip_angle_rad*sin(self.hip_angle_rad)],
+                          [                      0,                        0, 1,                                           0],
+                          [                      0,                        0, 0,                                           1]])
+
+    def update_knee_to_knee_orient_transform(self):
+        self.knee2knee_orient_transform = \
+                np.array([[ 0,  0, -1,  0],
+                          [-1,  0,  0,  0],
+                          [ 0,  1,  0,  0],
+                          [ 0,  0,  0,  1]])
+
+    def update_knee_orient_to_ankle_transform(self):
+        self.knee_orient2ankle_transform = \
+                np.array([[cos(self.knee_angle_rad), -sin(self.knee_angle_rad), 0, -self.thigh_len_cm*cos(self.knee_angle_rad)],
+                          [sin(self.knee_angle_rad),  cos(self.knee_angle_rad), 0, -self.thigh_len_cm*sin(self.knee_angle_rad)],
+                          [                        0,                          0, 1,                                            0],
+                          [                        0,                          0, 0,                                            1]])
+
+    def update_ankle_to_foot_transform(self):
+        self.ankle2foot_transform = \
+                np.array([[cos(self.ankle_angle_rad), -sin(self.ankle_angle_rad), 0, -self.shin_len_cm*cos(self.ankle_angle_rad)],
+                          [sin(self.ankle_angle_rad),  cos(self.ankle_angle_rad), 0, -self.shin_len_cm*sin(self.ankle_angle_rad)],
+                          [                        0,                          0, 1,                                           0],
+                          [                        0,                          0, 0,                                           1]])
+
+    def set_angles(self, hip_angle_rad: float, knee_angle_rad: float, ankle_angle_rad: float) -> None:
         """Set the angles of the leg and update transformation matrices as needed."""
         self.hip_angle_rad = hip_angle_rad
-        self.elbow_angle_rad = elbow_angle_rad
-        self.wrist_angle_rad = wrist_angle_rad
-        # TODO: update transformation matrices
+        self.knee_angle_rad = knee_angle_rad
+        self.ankle_angle_rad = ankle_angle_rad
+        # update tranformation matrices for joints
+        self.update_hip_rotation_to_knee_transform()
+        self.update_knee_to_knee_orient_transform()
+        self.update_knee_orient_to_ankle_transform()
+        self.update_ankle_to_foot_transform()
 
     def set_transform_to_body(self, body2leg_transform: npt.NDArray) -> None:
         """Set transformation from body pose to leg pose.
@@ -50,40 +96,84 @@ class LegKinematics():
         """Set position of the foot. Joint angles to achieve the position are calculated via inverse kinematics from the
         input coordinates (leg frame).
         """
-        leg_angles = np.zeros(3)
-        # TODO: inverse kinematics
-        self.set_angles(leg_angles[0], leg_angles[1], leg_angles[2])
+        # Supporting variable D
+        D = (x**2 + y**2 + z**2 - self.hip_len_cm**2 - self.thigh_len_cm**2 - self.shin_len_cm**2)/(2*self.thigh_len_cm*self.shin_len_cm)
+
+        if self.right_not_left:
+            new_ankle_angle = atan2(sqrt(1-D**2), D)
+        else:
+            new_ankle_angle = atan2(-sqrt(1-D**2), D)
+
+        new_knee_angle = atan2(z, sqrt(x**2 + y**2 - self.hip_len_cm**2)) - 
+            atan2(self.shin_len_cm*sin(new_ankle_angle), self.thigh_len_cm + self.shin_len_cm*cos(new_ankle_angle))
+
+        new_hip_angle = atan2(y, x) + atan2(sqrt(x**2 + y**2 - self.hip_len_cm**2), -self.hip_len_cm)
+
+        self.set_angles(new_hip_angle, new_knee_angle, new_ankle_angle)
 
     def set_foot_pose_in_body_coords(self, x: float, y: float, z: float) -> None:
         """Set position of the foot. Joint angles to achieve the position are calculated via inverse kinematics from the
         input coordinates (body frame).
         """
-        # TODO: convert body coord foot pose to local coord foot pose
-        self.set_foot_pos_in_local_coords(0, 0, 0)
+        # First invert the base2body transform
+        # This is easy to do in parts, because it's just the product of inverse rotation and negative translation matrices
+        # Also, inverse of an SO(3) matrix is equal to its own transpose.
+        rotation = self.body2base_transform[0:2,0:2].transpose()
+        translation = -1* self.body2base_transform[0:3,3]
+
+        homog_rotation = np.block([[       rotation, np.zeros((3,1))],
+                                   [np.zeros((1,3)),       np.eye(1)]])
+        homog_translation = np.eye(4)
+        homog_translation[0:3,3] = translation
+
+        base2body = np.matmul(homog_rotation, homog_translation)
+
+        # create the homogeneous foot position in the body coordinate system
+        foot_pose = np.array([x, y, z, 1])
+
+        # convert body coord foot pose to leg coordinates
+        foot_pose_body = base2body.dot(foot_pose)
+
+        # Now set the foot position in leg coordinates
+        self.set_foot_pos_in_local_coords(foot_pose_body[0], foot_pose_body[1], foot_pose_body[2])
 
     def get_leg_points(self) -> npt.NDArray:
         """Get the coordinates for the four points that define leg pose.
 
             Point 1: body to hip joint location
             Point 2: hip to thigh joint location
-            Point 3: thigh to wrist joint location
+            Point 3: thigh to ankle joint location
             Point 4: end of foot location
+
+        The way we calculate this is equivalent to calculating the foot pose in body coordinates, but we keep
+        track of intermediate variables.
         """
-        # TODO
-        return np.array([0, 0, 0],
-                        [0, 0, 0],
-                        [0, 0, 0],
-                        [0, 0, 0])
+        p1 = self.body2base_transform[0:3, 3]
+
+        transform_buildup = np.matmul(np.matmul(self.body2base_transform, self.base2knee_transform), self.knee2knee_orient_transform)
+        p2 = transform_buildup[0:3, 3]
+
+        transform_buildup = np.matmul(transform_buildup, self.knee_orient2ankle_transform)
+        p3 = transform_buildup[0:3, 3]
+
+        transform_buildup = np.matmul(transform_buildup, self.ankle2foot_transform)
+        p4 = transform_buildup[0:3, 3]
+
+        return np.vstack(p1, p2, p3, p4)
 
     def get_foot_pose_in_body_coords(self) -> npt.NDArray:
         """Return the coordinates of the foot's position in the body frame."""
-        return np.array([0, 0, 0])
+        foot_pose = np.matmul(np.matmul(np.matmul(np.matmul(self.body2base_transform, self.base2knee_transform),
+            self.knee2knee_orient_transform),
+            self.knee_orient2ankle_transform),
+            self.ankle2foot_transform)
+        return foot_pose[0:3,3]
 
     def get_leg_angles(self) -> npt.NDArray:
-        """Return leg angles (hip, elbow, wrist)."""
+        """Return leg angles (hip, knee, ankle)."""
         return np.array([self.hip_angle_rad,
-                         self.elbow_angle_rad,
-                         self.wrist_angle_rad])
+                         self.knee_angle_rad,
+                         self.ankle_angle_rad])
 
 class SpotKinematics():
     def __init__(self, hip_len_cm: float = 2, thigh_len_cm: float = 3, shin_len_cm: float = 4, body_width_cm: float = 5, body_len_cm: float = 6, body_pitch_rad: float = 0, body_roll_rad: float = 0, body_yaw_rad: float = 0):
@@ -100,13 +190,12 @@ class SpotKinematics():
         self.body_roll_rad = body_roll_rad
         self.body_yaw_rad = body_yaw_rad
 
-        # TODO: hold legs as separate objects?
         # TODO: body_transform for each leg
         self.legs = {
-            "fl": LegKinematics(hip_angle_rad, elbow_angle_rad, wrist_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, False),
-            "fr": LegKinematics(hip_angle_rad, elbow_angle_rad, wrist_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, True),
-            "bl": LegKinematics(hip_angle_rad, elbow_angle_rad, wrist_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, False),
-            "br": LegKinematics(hip_angle_rad, elbow_angle_rad, wrist_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, True)
+            "fl": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, False),
+            "fr": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, True),
+            "bl": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, False),
+            "br": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, True)
         }
 
     def get_joint_angles(self) -> npt.NDArray:
