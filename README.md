@@ -34,6 +34,17 @@ Check out the launch files in `spot_ws/launch` for examples of what you can do.
 
 ## TODO:
 
+* change everything to radians (no more angles)
+* finish kinematics
+  * determine units for lengths (m?)
+* update terminology:
+    coxa, hip, knee
+    body, thigh, shin
+    flc, flh, flk, etc.
+* document frames of reference
+  * body frame
+  * leg frame
+  * global frame
 * walking gait
 * estop into servo controller?
   * rigid-halt or go limp?

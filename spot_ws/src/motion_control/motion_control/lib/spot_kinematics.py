@@ -176,7 +176,7 @@ class LegKinematics():
                          self.ankle_angle_rad])
 
 class SpotKinematics():
-    def __init__(self, hip_len_cm: float = 2, thigh_len_cm: float = 3, shin_len_cm: float = 4, body_width_cm: float = 5, body_len_cm: float = 6, body_pitch_rad: float = 0, body_roll_rad: float = 0, body_yaw_rad: float = 0):
+    def __init__(self, hip_len_cm: float = 2, thigh_len_cm: float = 3, shin_len_cm: float = 4, body_width_cm: float = 5, body_len_cm: float = 6, body_pitch_rad: float = 0, body_roll_rad: float = 0, body_yaw_rad: float = 0, body_transform: npt.NDArray):
         """Initialize dimensions and pose of spot for use in motion calculations.
         """
         self.hip_len_cm = hip_len_cm
@@ -185,18 +185,40 @@ class SpotKinematics():
         self.body_width_cm = body_width_cm
         self.body_len_cm = body_len_cm
 
-        # TODO: use SO(3)?
         self.body_pitch_rad = body_pitch_rad
         self.body_roll_rad = body_roll_rad
         self.body_yaw_rad = body_yaw_rad
 
-        # TODO: body_transform for each leg
+        self.t_body = body_transform
+
         self.legs = {
-            "fl": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, False),
-            "fr": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, True),
-            "bl": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, False),
-            "br": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, body_transform, True)
+            "fl": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, self.t_body2fl(), False),
+            "fr": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, self.t_body2fr(), True),
+            "bl": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, self.t_body2bl(), False),
+            "br": LegKinematics(hip_angle_rad, knee_angle_rad, ankle_angle_rad, hip_len_cm, thigh_len_cm, shin_len_cm, self.t_body2br(), True)
         }
+
+    def get_body_to_leg_transform(self, angle, x_dist, y_dist):
+        return np.array([[ cos(angle), 0, sin(angle), x_dist],
+                         [          0, 1,          0,      0],
+                         [-sin(angle), 0, cos(angle), y_dist],
+                         [          0, 0,          0,      1]])
+
+    def t_body2fl(self):
+        return np.matmul(self.t_body,
+                self.get_body_to_leg_transform(-pi/2, self.body_len_cm/2, -self.body_width_cmd/2))
+
+    def t_body2fr(self):
+        return np.matmul(self.t_body,
+                self.get_body_to_leg_transform(pi/2, self.body_len_cm/2, self.body_width_cmd/2))
+        
+    def t_body2bl(self):
+        return np.matmul(self.t_body,
+                self.get_body_to_leg_transform(-pi/2, -self.body_len_cm/2, -self.body_width_cmd/2))
+
+    def t_body2br(self):
+        return np.matmul(self.t_body,
+                self.get_body_to_leg_transform(pi/2, -self.body_len_cm/2, self.body_width_cmd/2))
 
     def get_joint_angles(self) -> npt.NDArray:
         """Gets the current joint angles for the entire robot.
@@ -244,27 +266,48 @@ class SpotKinematics():
         self.legs["bl"].get_foot_pose_in_body_coords(foot_coords[2, 0], foot_coords[2, 1], foot_coords[2, 2])
         self.legs["br"].get_foot_pose_in_body_coords(foot_coords[3, 0], foot_coords[3, 1], foot_coords[3, 2])
 
-    def get_body_angles(self) -> npt.NDArray:
-        """Return the current lean of the body.
 
-        Angles are an array of (roll, pitch, yaw).
-        """
-        # TODO:
-        return np.array([0])
+    def set_body_transform(self, body_transform):
+        feet_coords = {}
+        for leg in self.legs:
+            feet_coords[leg] = self.legs[leg].get_foot_pose_in_body_coords()
 
-    def set_body_angles(self, body_lean: npt.NDArray) -> None:
+        self.t_body = body_transform
+
+        self.legs["fl"].set_transform_to_body(self.t_body2fl())
+        self.legs["fr"].set_transform_to_body(self.t_body2fr())
+        self.legs["bl"].set_transform_to_body(self.t_body2bl())
+        self.legs["br"].set_transform_to_body(self.t_body2br())
+
+        feet_coords_matrix = np.block([[feet_coords["fl"]],
+                                       [feet_coords["fr"]],
+                                       [feet_coords["bl"]],
+                                       [feet_coords["br"]]])
+        self.set_foot_pose_in_body_coords(feet_coords_matrix)
+
+    def set_body_angles(self, body_pitch_rad: float = 0, body_roll_rad: float = 0, body_yaw_rad: float = 0) -> None:
         """Sets lean of body (pose) while leaving foot positions fixed.
 
-        Angles are an array of (roll, pitch, yaw).
+        phi = roll = x, theta = pitch = z, psi = yaw = y
+        
+        TODO: we may want a getter for body angles
         """
-        # TODO:
-        # get current foot position so we can make sure they stay put
+        roll  = np.array([[1,                  0,                   0],
+                          [0, cos(body_roll_rad), -sin(body_roll_rad)],
+                          [0, sin(body_roll_rad),  cos(body_roll_rad)]])
 
-        # update the body position
+        yaw   = np.array([[ cos(body_yaw_rad), 0, sin(body_yaw_rad)],
+                          [                0,  1,                 0],
+                          [-sin(body_yaw_rad), 0, cos(body_yaw_rad)]])
 
-        # update the body to leg transform for each leg
+        pitch = np.array([[cos(body_pitch_rad), -sin(body_pitch_rad), 0],
+                          [sin(body_pitch_rad),  cos(body_pitch_rad), 0],
+                          [                  0,                    0, 1]])
 
-        # set pose of feet in the body frame
-        pass
+        rotation = np.matmul(np.matmul(roll, yaw), pitch)
+
+        new_transform = self.t_body
+        new_transform[0:3,0:3] = rotation
+        self.set_body_transform(new_transform)
 
     
