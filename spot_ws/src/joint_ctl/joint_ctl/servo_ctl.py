@@ -1,4 +1,6 @@
 
+from math import radians as rad
+
 import rclpy
 from rclpy.node import Node
 from joint_ctl.lib.servo import Servo, PcaPwm
@@ -19,21 +21,21 @@ class SpotJoints(Node):
         # TODO: parametrize servo pin IDs?
 
         # Front Left Leg
-        self._fls_servo = Servo(self._controller, 3, min_out = [-30.0, 450], max_out = [30.0, 350]) # front-left shoulder
-        self._fle_servo = Servo(self._controller, 4, min_out = [-78.0, 530], max_out = [78.0, 270]) # front-left elbow
-        self._flw_servo = Servo(self._controller, 5, min_out = [-60.0, 460], max_out = [90.0, 110]) # front-left wrist
+        self._flc_servo = Servo(self._controller, 3, min_out = [rad(-30.0), 450], max_out = [rad(30.0), 350]) # front-left coxa
+        self._flh_servo = Servo(self._controller, 4, min_out = [rad(-78.0), 530], max_out = [rad(78.0), 270]) # front-left hip
+        self._flk_servo = Servo(self._controller, 5, min_out = [rad(-60.0), 460], max_out = [rad(90.0), 110]) # front-left knee
         # Front Right Leg
-        self._frs_servo = Servo(self._controller, 0, min_out = [-30.0, 330], max_out = [30.0, 450]) # front-right shoulder
-        self._fre_servo = Servo(self._controller, 1, min_out = [-78.0, 220], max_out = [78.0, 480]) # front-right elbow
-        self._frw_servo = Servo(self._controller, 2, min_out = [-60.0, 300], max_out = [90.0, 650]) # front-right wrist
+        self._frc_servo = Servo(self._controller, 0, min_out = [rad(-30.0), 330], max_out = [rad(30.0), 450]) # front-right coxa
+        self._frh_servo = Servo(self._controller, 1, min_out = [rad(-78.0), 220], max_out = [rad(78.0), 480]) # front-right hip
+        self._frk_servo = Servo(self._controller, 2, min_out = [rad(-60.0), 300], max_out = [rad(90.0), 650]) # front-right knee
         # Back Left Leg
-        self._bls_servo = Servo(self._controller, 9, min_out = [-30.0, 415], max_out = [30.0, 315]) # back-left shoulder
-        self._ble_servo = Servo(self._controller, 10, min_out = [-78.0, 550], max_out = [78.0, 290]) # back-left elbow
-        self._blw_servo = Servo(self._controller, 11, min_out = [-60.0, 470], max_out = [90.0, 120]) # back-left wrist
+        self._blc_servo = Servo(self._controller, 9, min_out = [rad(-30.0), 415], max_out = [rad(30.0), 315]) # back-left coxa
+        self._blh_servo = Servo(self._controller, 10, min_out = [rad(-78.0), 550], max_out = [rad(78.0), 290]) # back-left hip
+        self._blk_servo = Servo(self._controller, 11, min_out = [rad(-60.0), 470], max_out = [rad(90.0), 120]) # back-left knee
         # Back Right Leg
-        self._brs_servo = Servo(self._controller, 6, min_out = [-30.0, 320], max_out = [30.0, 420]) # back-right shoulder
-        self._bre_servo = Servo(self._controller, 7, min_out = [-78.0, 210], max_out = [78.0, 470]) # back-right elbow
-        self._brw_servo = Servo(self._controller, 8, min_out = [-60.0, 290], max_out = [90.0, 640]) # back-right wrist
+        self._brc_servo = Servo(self._controller, 6, min_out = [rad(-30.0), 320], max_out = [rad(30.0), 420]) # back-right coxa
+        self._brh_servo = Servo(self._controller, 7, min_out = [rad(-78.0), 210], max_out = [rad(78.0), 470]) # back-right hip
+        self._brk_servo = Servo(self._controller, 8, min_out = [rad(-60.0), 290], max_out = [rad(90.0), 640]) # back-right knee
 
         self._target_joint_sub = self.create_subscription(
             JointAngles,
@@ -58,21 +60,21 @@ class SpotJoints(Node):
         current_joint_angles = JointAngles()
 
         # front left leg
-        current_joint_angles.fls = self._fls_servo.set_angle_deg(msg.fls)
-        current_joint_angles.fle = self._fle_servo.set_angle_deg(msg.fle)
-        current_joint_angles.flw = self._flw_servo.set_angle_deg(msg.flw)
+        current_joint_angles.flc = self._flc_servo.set_angle_rad(msg.flc)
+        current_joint_angles.flh = self._flh_servo.set_angle_rad(msg.flh)
+        current_joint_angles.flk = self._flk_servo.set_angle_rad(msg.flk)
         # front right leg
-        current_joint_angles.frs = self._frs_servo.set_angle_deg(msg.frs)
-        current_joint_angles.fre = self._fre_servo.set_angle_deg(msg.fre)
-        current_joint_angles.frw = self._frw_servo.set_angle_deg(msg.frw)
+        current_joint_angles.frc = self._frc_servo.set_angle_rad(msg.frc)
+        current_joint_angles.frh = self._frh_servo.set_angle_rad(msg.frh)
+        current_joint_angles.frk = self._frk_servo.set_angle_rad(msg.frk)
         # back left leg
-        current_joint_angles.bls = self._bls_servo.set_angle_deg(msg.bls)
-        current_joint_angles.ble = self._ble_servo.set_angle_deg(msg.ble)
-        current_joint_angles.blw = self._blw_servo.set_angle_deg(msg.blw)
+        current_joint_angles.blc = self._blc_servo.set_angle_rad(msg.blc)
+        current_joint_angles.blh = self._blh_servo.set_angle_rad(msg.blh)
+        current_joint_angles.blk = self._blk_servo.set_angle_rad(msg.blk)
         # back right leg
-        current_joint_angles.brs = self._brs_servo.set_angle_deg(msg.brs)
-        current_joint_angles.bre = self._bre_servo.set_angle_deg(msg.bre)
-        current_joint_angles.brw = self._brw_servo.set_angle_deg(msg.brw)
+        current_joint_angles.brc = self._brc_servo.set_angle_rad(msg.brc)
+        current_joint_angles.brh = self._brh_servo.set_angle_rad(msg.brh)
+        current_joint_angles.brk = self._brk_servo.set_angle_rad(msg.brk)
 
         self._current_joint_pub.publish(current_joint_angles)
 

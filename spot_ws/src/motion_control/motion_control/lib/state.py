@@ -44,18 +44,18 @@ class SitState(BaseState):
 
     def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
         target_angles = JointAngles()
-        target_angles.fls = one_step_interp(current_angles.fls, self._sit_angles.fls, max_angle_delta)
-        target_angles.fle = one_step_interp(current_angles.fle, self._sit_angles.fle, max_angle_delta)
-        target_angles.flw = one_step_interp(current_angles.flw, self._sit_angles.flw, max_angle_delta)
-        target_angles.frs = one_step_interp(current_angles.frs, self._sit_angles.frs, max_angle_delta)
-        target_angles.fre = one_step_interp(current_angles.fre, self._sit_angles.fre, max_angle_delta)
-        target_angles.frw = one_step_interp(current_angles.frw, self._sit_angles.frw, max_angle_delta)
-        target_angles.bls = one_step_interp(current_angles.bls, self._sit_angles.bls, max_angle_delta)
-        target_angles.ble = one_step_interp(current_angles.ble, self._sit_angles.ble, max_angle_delta)
-        target_angles.blw = one_step_interp(current_angles.blw, self._sit_angles.blw, max_angle_delta)
-        target_angles.brs = one_step_interp(current_angles.brs, self._sit_angles.brs, max_angle_delta)
-        target_angles.bre = one_step_interp(current_angles.bre, self._sit_angles.bre, max_angle_delta)
-        target_angles.brw = one_step_interp(current_angles.brw, self._sit_angles.brw, max_angle_delta)
+        target_angles.flc = one_step_interp(current_angles.flc, self._sit_angles.flc, max_angle_delta)
+        target_angles.flh = one_step_interp(current_angles.flh, self._sit_angles.flh, max_angle_delta)
+        target_angles.flk = one_step_interp(current_angles.flk, self._sit_angles.flk, max_angle_delta)
+        target_angles.frc = one_step_interp(current_angles.frc, self._sit_angles.frc, max_angle_delta)
+        target_angles.frh = one_step_interp(current_angles.frh, self._sit_angles.frh, max_angle_delta)
+        target_angles.frk = one_step_interp(current_angles.frk, self._sit_angles.frk, max_angle_delta)
+        target_angles.blc = one_step_interp(current_angles.blc, self._sit_angles.blc, max_angle_delta)
+        target_angles.blh = one_step_interp(current_angles.blh, self._sit_angles.blh, max_angle_delta)
+        target_angles.blk = one_step_interp(current_angles.blk, self._sit_angles.blk, max_angle_delta)
+        target_angles.brc = one_step_interp(current_angles.brc, self._sit_angles.brc, max_angle_delta)
+        target_angles.brh = one_step_interp(current_angles.brh, self._sit_angles.brh, max_angle_delta)
+        target_angles.brk = one_step_interp(current_angles.brk, self._sit_angles.brk, max_angle_delta)
         return target_angles
 
 class StandState(BaseState):
@@ -76,18 +76,18 @@ class StandState(BaseState):
     def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
         # TODO: look at z-twist to see if we should raise/lower, etc.
         target_angles = JointAngles()
-        target_angles.fls = one_step_interp(current_angles.fls, self._stand_angles.fls, max_angle_delta)
-        target_angles.fle = one_step_interp(current_angles.fle, self._stand_angles.fle, max_angle_delta)
-        target_angles.flw = one_step_interp(current_angles.flw, self._stand_angles.flw, max_angle_delta)
-        target_angles.frs = one_step_interp(current_angles.frs, self._stand_angles.frs, max_angle_delta)
-        target_angles.fre = one_step_interp(current_angles.fre, self._stand_angles.fre, max_angle_delta)
-        target_angles.frw = one_step_interp(current_angles.frw, self._stand_angles.frw, max_angle_delta)
-        target_angles.bls = one_step_interp(current_angles.bls, self._stand_angles.bls, max_angle_delta)
-        target_angles.ble = one_step_interp(current_angles.ble, self._stand_angles.ble, max_angle_delta)
-        target_angles.blw = one_step_interp(current_angles.blw, self._stand_angles.blw, max_angle_delta)
-        target_angles.brs = one_step_interp(current_angles.brs, self._stand_angles.brs, max_angle_delta)
-        target_angles.bre = one_step_interp(current_angles.bre, self._stand_angles.bre, max_angle_delta)
-        target_angles.brw = one_step_interp(current_angles.brw, self._stand_angles.brw, max_angle_delta)
+        target_angles.flc = one_step_interp(current_angles.flc, self._stand_angles.flc, max_angle_delta)
+        target_angles.flh = one_step_interp(current_angles.flh, self._stand_angles.flh, max_angle_delta)
+        target_angles.flk = one_step_interp(current_angles.flk, self._stand_angles.flk, max_angle_delta)
+        target_angles.frc = one_step_interp(current_angles.frc, self._stand_angles.frc, max_angle_delta)
+        target_angles.frh = one_step_interp(current_angles.frh, self._stand_angles.frh, max_angle_delta)
+        target_angles.frk = one_step_interp(current_angles.frk, self._stand_angles.frk, max_angle_delta)
+        target_angles.blc = one_step_interp(current_angles.blc, self._stand_angles.blc, max_angle_delta)
+        target_angles.blh = one_step_interp(current_angles.blh, self._stand_angles.blh, max_angle_delta)
+        target_angles.blk = one_step_interp(current_angles.blk, self._stand_angles.blk, max_angle_delta)
+        target_angles.brc = one_step_interp(current_angles.brc, self._stand_angles.brc, max_angle_delta)
+        target_angles.brh = one_step_interp(current_angles.brh, self._stand_angles.brh, max_angle_delta)
+        target_angles.brk = one_step_interp(current_angles.brk, self._stand_angles.brk, max_angle_delta)
         return target_angles
 
 class WalkState(BaseState):

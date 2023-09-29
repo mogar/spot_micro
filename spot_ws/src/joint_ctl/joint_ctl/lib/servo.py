@@ -15,6 +15,8 @@ from smbus2 import SMBus
 
 from rclpy import logging
 
+from math import pi
+
 class PcaPwm():
     """
     Handle communication and high level control of a PCA9685 PWM controller.
@@ -120,7 +122,7 @@ class PcaPwm():
 
 class Servo():
     """Manage state for a specific PWM pin connected to a servo."""
-    def __init__(self, comms: PcaPwm, servo_id: int, min_out: list[int] = [-90, 750], max_out: list[int] = [90, 1500], home: float = 0.0) -> None:
+    def __init__(self, comms: PcaPwm, servo_id: int, min_out: list[int] = [-pi/2, 750], max_out: list[int] = [pi, 1500], home: float = 0.0) -> None:
         """Initialize parameters of the servo and drive it to home."""
         self._comms = comms
         self._servo_id = servo_id
@@ -130,7 +132,7 @@ class Servo():
         self._min_out = min_out
         self._max_out = max_out
         self._home = home
-        self.set_angle_deg(self._home)
+        self.set_angle_rad(self._home)
 
     def set_target(self, target: int) -> int:
         """Set the desired pwm value of the servo (not angle).
@@ -148,25 +150,25 @@ class Servo():
         """Return the current pwm value (not angle) of the servo."""
         return self._target
 
-    def angle_deg_to_target(self, angle: float) -> int:
+    def angle_rad_to_target(self, angle: float) -> int:
         # linear interp between min/max
         target = (self._min_out[1] - self._max_out[1])/(self._min_out[0] - self._max_out[0]) * \
                 (angle - self._max_out[0]) + self._max_out[1]
         target = int(target)
         return target
     
-    def target_to_angle_deg(self, target: int) -> float:
+    def target_to_angle_rad(self, target: int) -> float:
         # linear interp between min/max
         angle = (self._min_out[0] - self._max_out[0])/(self._min_out[1] - self._max_out[1]) * \
                 (target - self._max_out[1]) + self._max_out[0]
         return angle
 
-    def set_angle_deg(self, angle: float) -> float:
+    def set_angle_rad(self, angle: float) -> float:
         angle = max(self._min_out[0], min(angle, self._max_out[0]))
-        self.set_target(self.angle_deg_to_target(angle))
+        self.set_target(self.angle_rad_to_target(angle))
         return angle
 
-    def get_angle_deg(self) -> float:
+    def get_angle_rad(self) -> float:
         return self.target_to_angle(self._target)
 
     # NOTE: see property and setter here: https://github.com/adafruit/Adafruit_CircuitPython_Motor/blob/main/adafruit_motor/servo.py#L123

@@ -12,20 +12,20 @@ def get_sitting_pose():
     sit_angles = JointAngles()
 
     # Front Left Leg
-    sit_angles.fls = 0.0
-    sit_angles.fle = 20.0
-    sit_angles.flw = 20.0
+    sit_angles.flc = 0.0
+    sit_angles.flh = 20.0
+    sit_angles.flk = 20.0
     # Front Right Leg
-    sit_angles.frs = 0.0
-    sit_angles.fre = 20.0
-    sit_angles.frw = 20.0
+    sit_angles.frc = 0.0
+    sit_angles.frh = 20.0
+    sit_angles.frk = 20.0
     # Back Left Leg
-    sit_angles.bls = 0.0
-    sit_angles.ble = -45.0
-    sit_angles.blw = 60.0
+    sit_angles.blc = 0.0
+    sit_angles.blh = -45.0
+    sit_angles.blk = 60.0
     # Back Right Leg
-    sit_angles.brs = 0.0
-    sit_angles.bre = -45.0
-    sit_angles.brw = 60.0
+    sit_angles.brc = 0.0
+    sit_angles.brh = -45.0
+    sit_angles.brk = 60.0
 
     return sit_angles

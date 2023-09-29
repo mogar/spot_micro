@@ -5,6 +5,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from spot_interfaces.msg import JointAngles
 
+from math import pi
+
 class Joy2Joints(Node):
     """
     Class implementing ROS2 Node to convert joystick commands directly into joint angles.
@@ -26,7 +28,7 @@ class Joy2Joints(Node):
         self.declare_parameter('R_stick_fwd', 4)
         self.declare_parameter('R_trigger_bottom', 5)
 
-        self.declare_parameter('scale', 90.0)
+        self.declare_parameter('scale', pi/2)
 
         self.declare_parameter('button_switch', 0) # A
         self.declare_parameter('button_estop', 1) # B
@@ -44,10 +46,10 @@ class Joy2Joints(Node):
         self._num_legs = 4
         self._switch_pressed = False
 
-        # starting default angles
-        self._shoulder_angle = 0.0
-        self._elbow_angle = 0.0
-        self._wrist_angle = 0.0
+        # starting default angles (in radians)
+        self._coxa_angle_rad = 0.0
+        self._hip_angle_rad = 0.0
+        self._knee_angle_rad = 0.0
 
     def joy_callback(self, msg) -> None:
         """Populate and joint servo angles based on an incoming joy message."""
@@ -69,33 +71,33 @@ class Joy2Joints(Node):
             self._switch_pressed = False
 
         # get control for all servos in active leg
-        shoulder = msg.axes[self.get_parameter('R_stick_fwd').value]
-        elbow =    msg.axes[self.get_parameter('R_stick_side').value]
-        wrist =    msg.axes[self.get_parameter('R_trigger_bottom').value]
-        # convert to degrees
-        self._shoulder_angle = shoulder*self.get_parameter('scale').value
-        self._elbow_angle = elbow*self.get_parameter('scale').value
-        self._wrist_angle = wrist*self.get_parameter('scale').value
+        coxa = msg.axes[self.get_parameter('R_stick_fwd').value]
+        hip  = msg.axes[self.get_parameter('R_stick_side').value]
+        knee = msg.axes[self.get_parameter('R_trigger_bottom').value]
+        # convert to radians
+        self._coxa_angle_rad = coxa*self.get_parameter('scale').value
+        self._hip_angle_rad  = hip*self.get_parameter('scale').value
+        self._knee_angle_rad = knee*self.get_parameter('scale').value
 
     def joint_publisher(self):
         joint_msg = JointAngles()
 
         if self._leg_id == 0: # FL
-            joint_msg.fls = self._shoulder_angle
-            joint_msg.fle = self._elbow_angle
-            joint_msg.flw = self._wrist_angle
+            joint_msg.flc = self._coxa_angle_rad
+            joint_msg.flh = self._hip_angle_rad
+            joint_msg.flk = self._knee_angle_rad
         elif self._leg_id == 1: # FR
-            joint_msg.frs = self._shoulder_angle
-            joint_msg.fre = self._elbow_angle
-            joint_msg.frw = self._wrist_angle
+            joint_msg.frc = self._coxa_angle_rad
+            joint_msg.frh = self._hip_angle_rad
+            joint_msg.frk = self._knee_angle_rad
         elif self._leg_id == 2: # BL
-            joint_msg.bls = self._shoulder_angle
-            joint_msg.ble = self._elbow_angle
-            joint_msg.blw = self._wrist_angle
+            joint_msg.blc = self._coxa_angle_rad
+            joint_msg.blh = self._hip_angle_rad
+            joint_msg.blk = self._knee_angle_rad
         else: #self._leg_id == 3 - BR
-            joint_msg.brs = self._shoulder_angle
-            joint_msg.bre = self._elbow_angle
-            joint_msg.brw = self._wrist_angle
+            joint_msg.brc = self._coxa_angle_rad
+            joint_msg.brh = self._hip_angle_rad
+            joint_msg.brk = self._knee_angle_rad
 
         self._joint_pub.publish(joint_msg)
 

@@ -32,15 +32,33 @@ source install/setup.bash
 
 Check out the launch files in `spot_ws/launch` for examples of what you can do.
 
+## Terminology notes
+
+Most mammals that we interact with have ball joints for hips. The Spot Micro instead has two hinges that collectively serve the same purpose.
+These two hinges are pretty close to each other, but the small linear distance between them does introduce another transform into the robot kinematics.
+In order to distinguish between joints, we call the joint closest to the body the "coxa" and the joint second from the body the "hip".
+
+| Joint Term | Description |
+| ---------- | ----------- |
+| coxa       | First joint between body and a leg. |
+| hip        | Second joint in leg, between coxa and knee. |
+| knee       | Final joint in leg. Backwards from how a human knee would bend. |
+| foot       | The end of the lowest rigid link in the leg. |
+
+Leg links similarly have specific naming:
+
+| Leg link | Description |
+| pelvis   | The short link between coxa and hip joints. |
+| thigh    | The upper leg link, between hip and knee. |
+| shin     | The lower leg link, between knee and ground. |
+
+In order to identify specific joints in the robot, we sometimes used TLAs. For example, the front-left coxa would be called the "flc" and so forth.
+
 ## TODO:
 
-* change everything to radians (no more angles)
 * finish kinematics
   * determine units for lengths (m?)
-* update terminology:
-    coxa, hip, knee
-    body, thigh, shin
-    flc, flh, flk, etc.
+* measure spot micro joint lengths
 * document frames of reference
   * body frame
   * leg frame

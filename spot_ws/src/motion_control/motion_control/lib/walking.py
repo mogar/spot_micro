@@ -33,13 +33,13 @@ class WalkManager():
         # the bot shifts its center of gravity to leave the next leg in the start position.
         # TODO: start leg angles
         # high leg angles
-        self._high_leg_shoulder = 0.0 # TODO:
-        self._high_leg_elbow = 5.0 # TODO:
-        self._high_leg_wrist = 20.0 # TODO:
+        self._high_leg_coxa = 0.0 # TODO:
+        self._high_leg_hip = 5.0 # TODO:
+        self._high_leg_knee = 20.0 # TODO:
         # stop leg angles
-        self._stop_leg_shoulder = 0.0 # TODO:
-        self._stop_leg_elbow = 20.0 # TODO:
-        self._stop_leg_wrist = -20.0 # TODO:
+        self._stop_leg_coxa = 0.0 # TODO:
+        self._stop_leg_hip = 20.0 # TODO:
+        self._stop_leg_knee = -20.0 # TODO:
 
 
     def is_standing(self, cmd: Twist) -> bool:
@@ -75,7 +75,7 @@ class WalkManager():
 
     def update_phase(self, current_angles: JointAngles) -> None:
         # TODO: check if current angles shows we're at the end of the phase
-        # foot on the ground, shoulder forward
+        # foot on the ground, coxa forward
         # maybe have a "done leg pose" we're targeting
 
         # TODO: calculate whether we're swinging or shifting
@@ -92,16 +92,16 @@ class WalkManager():
     def triangular_interp_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
         active_leg_angles = motion_utils.get_leg_angles_as_np_array(current_angles, self._moving_leg)
 
-        if active_leg_angles[0] <= self._high_leg_shoulder:
+        if active_leg_angles[0] <= self._high_leg_coxa:
             # ascending: leg angles interp up to top
-            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._high_leg_shoulder, angle_speed)
-            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._high_leg_elbow, angle_speed)
-            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._high_leg_wrist, angle_speed)
+            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._high_leg_coxa, angle_speed)
+            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._high_leg_hip, angle_speed)
+            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._high_leg_knee, angle_speed)
         else:
             # descending: leg angles interp down to stop
-            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._stop_leg_shoulder, angle_speed)
-            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._stop_leg_elbow, angle_speed)
-            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._stop_leg_wrist, angle_speed)
+            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._stop_leg_coxa, angle_speed)
+            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._stop_leg_hip, angle_speed)
+            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._stop_leg_knee, angle_speed)
 
         new_angles = copy.copy(current_angles)
         motion_utils.set_leg_angles_in_joint_angles(new_angles, active_leg_angles, self._moving_leg)

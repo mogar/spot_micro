@@ -1,34 +1,35 @@
+# All joint angles in radians
 # FL
-# Shoulder or x
-float32 fls
-# Elbow or y
-float32 fle
-# Wrist or z
-float32 flw
+# Coxa
+float32 flc
+# Hip
+float32 flh
+# Knee
+float32 flk
 
 # FR
-# Shoulder or x
-float32 frs
-# Elbow or y
-float32 fre
-# Wrist or z
-float32 frw
+# Coxa
+float32 frc
+# Hip
+float32 frh
+# Knee
+float32 frk
 
 # BL
-# Shoulder or x
-float32 bls
-# Elbow or y
-float32 ble
-# Wrist or z
-float32 blw
+# Coxa
+float32 blc
+# Hip
+float32 blh
+# Knee
+float32 blk
 
 # BR
-# Shoulder or x
-float32 brs
-# Elbow or y
-float32 bre
-# Wrist or z
-float32 brw
+# Coxa
+float32 brc
+# Hip
+float32 brh
+# Knee
+float32 brk
 
 # Move Type (for servo smoothness)
 # step is 0
