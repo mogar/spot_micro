@@ -56,8 +56,6 @@ In order to identify specific joints in the robot, we sometimes used TLAs. For e
 
 ## TODO:
 
-* finish kinematics
-  * determine units for lengths (m?)
 * measure spot micro joint lengths
 * document frames of reference
   * body frame
