@@ -58,41 +58,41 @@ def set_leg_angles_in_joint_angles(joints: JointAngles, leg_angles: npt.NDArray,
 def joint_angles_to_np_array(joints: JointAngles) -> npt.NDArray:
     """Convert joint angles represented as a JointAngles object into a numpy array.
     """
-    angles = np.zeros(12) # 3 joints for each of 4 legs
-    angles[0]  = joints.flc
-    angles[1]  = joints.flh
-    angles[2]  = joints.flk
-    angles[3]  = joints.frc
-    angles[4]  = joints.frh
-    angles[5]  = joints.frk
-    angles[6]  = joints.blc
-    angles[7]  = joints.blh
-    angles[8]  = joints.blk
-    angles[9]  = joints.brc
-    angles[10] = joints.brh
-    angles[11] = joints.brk
+    angles = np.zeros((4,3)) # 3 joints for each of 4 legs
+    angles[0,0] = joints.flc
+    angles[0,1] = joints.flh
+    angles[0,2] = joints.flk
+    angles[1,0] = joints.frc
+    angles[1,1] = joints.frh
+    angles[1,2] = joints.frk
+    angles[2,0] = joints.blc
+    angles[2,1] = joints.blh
+    angles[2,1] = joints.blk
+    angles[3,0] = joints.brc
+    angles[3,1] = joints.brh
+    angles[3,2] = joints.brk
     return angles
 
 def np_array_to_joint_angles(array: npt.NDArray) -> JointAngles:
     """Convert jcint angles represented as a numpy array into a JointAngles object.
     """
     joints = JointAngles()
-    if array.shape != (12,):
+    if array.shape != (4,3):
         # it's not a valid joint angles array, so just return all zeros as default
         return joints
 
-    joints.flc = array[0]
-    joints.flh = array[1]
-    joints.flk = array[2]
-    joints.frc = array[3]
-    joints.frh = array[4]
-    joints.frk = array[5]
-    joints.blc = array[6]
-    joints.blh = array[7]
-    joints.blk = array[8]
-    joints.brc = array[9]
-    joints.brh = array[10]
-    joints.brk = array[11]
+    joints.flc = array[0,0]
+    joints.flh = array[0,1]
+    joints.flk = array[0,2]
+    joints.frc = array[1,0]
+    joints.frh = array[1,1]
+    joints.frk = array[1,2]
+    joints.blc = array[2,0]
+    joints.blh = array[2,1]
+    joints.blk = array[2,2]
+    joints.brc = array[3,0]
+    joints.brh = array[3,1]
+    joints.brk = array[3,2]
     return joints
 
 def joint_angles_match(joints_a: JointAngles, joints_b: JointAngles, tolerance_deg: float = 0.01) -> bool:

@@ -32,6 +32,13 @@ source install/setup.bash
 
 Check out the launch files in `spot_ws/launch` for examples of what you can do.
 
+## Reference Frames
+
+For the robot as a whole:
+* +X is forward
+* +Y is up-down
+* +Z is right (CHECK THIS?)
+
 ## Terminology notes
 
 Most mammals that we interact with have ball joints for hips. The Spot Micro instead has two hinges that collectively serve the same purpose.

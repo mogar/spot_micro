@@ -102,8 +102,8 @@ class Joy2Cmd(Node):
         # Twist message
         cmd_msg = Twist()
 
-        y = self._joy_msg.axes[self.get_parameter('R_stick_fwd').value]
-        x = self._joy_msg.axes[self.get_parameter('R_stick_side').value]
+        x = self._joy_msg.axes[self.get_parameter('R_stick_fwd').value]
+        y = self._joy_msg.axes[self.get_parameter('R_stick_side').value]
         z = self._joy_msg.axes[self.get_parameter('R_trigger_bottom').value]
 
         x *= self.get_parameter('lin_x_scale').value
@@ -114,8 +114,8 @@ class Joy2Cmd(Node):
         cmd_msg.linear.y = y
         cmd_msg.linear.z = z
 
-        ang_y = self._joy_msg.axes[self.get_parameter('L_stick_fwd').value]
-        ang_x = self._joy_msg.axes[self.get_parameter('L_stick_side').value]
+        ang_x = self._joy_msg.axes[self.get_parameter('L_stick_fwd').value]
+        ang_y = self._joy_msg.axes[self.get_parameter('L_stick_side').value]
         ang_z = self._joy_msg.axes[self.get_parameter('pluspad_fwd').value]
 
         ang_x *= self.get_parameter('ang_x_scale').value
