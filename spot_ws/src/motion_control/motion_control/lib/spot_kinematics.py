@@ -189,7 +189,7 @@ class LegKinematics():
                          self.knee_angle_rad])
 
 class SpotKinematics():
-    def __init__(self, pelvis_len_m: float = 0.090, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.190, body_z_m: float = 0.0) -> None:
+    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.190, body_z_m: float = 0.0) -> None:
         """Initialize dimensions and pose of spot for use in motion calculations.
         """
         self.pelvis_len_m = pelvis_len_m
