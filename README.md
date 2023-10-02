@@ -63,11 +63,9 @@ In order to identify specific joints in the robot, we sometimes used TLAs. For e
 
 ## TODO:
 
-* measure spot micro joint lengths
 * document frames of reference
-  * body frame
   * leg frame
-  * global frame
+* get standing working with kinematics
 * walking gait
 * estop into servo controller?
   * rigid-halt or go limp?
