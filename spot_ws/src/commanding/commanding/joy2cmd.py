@@ -49,9 +49,9 @@ class Joy2Cmd(Node):
         self.declare_parameter('L_trigger_bottom', 2)
         self.declare_parameter('pluspad_fwd', 1)
 
-        self.declare_parameter('ang_x_scale', -1.0)
-        self.declare_parameter('ang_y_scale', -1.0)
-        self.declare_parameter('ang_z_scale', -1.0)
+        self.declare_parameter('ang_x_scale', -0.35)
+        self.declare_parameter('ang_y_scale', -0.35)
+        self.declare_parameter('ang_z_scale', -0.35)
 
         self.declare_parameter('button_switch', 0) # A
         self.declare_parameter('button_estop', 1) # B

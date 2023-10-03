@@ -40,7 +40,6 @@ class LegKinematics():
         self.shin_len_m = shin_len_m
 
         self.body2base_transform = body2leg_transform
-        logging.get_logger("leg_kine").info(str(self.body2base_transform))
         self.right_not_left = right_not_left
 
         # update tranformation matrices for joints
@@ -96,11 +95,11 @@ class LegKinematics():
         """Set transformation from body pose to leg pose.
         
         This transform is to the top of the leg (the hip joint)."""
-        self.body2leg_transform = body2leg_transform
+        self.body2base_transform = body2leg_transform
 
     def get_transform_to_body(self) -> npt.NDArray:
         """Get transformation from body pose to leg pose"""
-        return self.body2leg_transform
+        return self.body2base_transform
 
     def set_foot_pose_in_local_coords(self, x: float, y: float, z: float) -> None:
         """Set position of the foot. Joint angles to achieve the position are calculated via inverse kinematics from the
@@ -116,12 +115,14 @@ class LegKinematics():
         else:
             new_knee_angle = atan2(-sqrt(1-D**2), D)
 
-        new_hip_angle = atan2(z, sqrt(x**2 + y**2 - self.pelvis_len_m**2)) - \
+        # Secondary supporting variable
+        D2 = x**2 + y**2 - self.pelvis_len_m**2
+        D2 = max(0, D2)
+        new_hip_angle = atan2(z, sqrt(D2)) - \
             atan2(self.shin_len_m*sin(new_knee_angle), self.thigh_len_m + self.shin_len_m*cos(new_knee_angle))
 
-        new_coxa_angle = atan2(y, x) + atan2(sqrt(x**2 + y**2 - self.pelvis_len_m**2), -self.pelvis_len_m)
+        new_coxa_angle = atan2(y, x) + atan2(sqrt(D2), -self.pelvis_len_m)
 
-        logging.get_logger("legkine").info("coxa: " + str(new_coxa_angle) + ", hip: " + str(new_hip_angle) + ", knee: " + str(new_knee_angle))
         self.set_angles(new_coxa_angle, new_hip_angle, new_knee_angle)
 
     def set_foot_pose_in_body_coords(self, x: float, y: float, z: float) -> None:
@@ -199,17 +200,16 @@ class SpotKinematics():
         self.body_len_m = body_len_m
 
         # starting rotation and position of the body
-        rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
+        # We start with full extension legs so that we simplify initialization
+        # The last step of this init method is set the actual body pose
         rot_homog = np.eye(4)
-        rot_homog[0:3, 0:3] = rotation
         trans_homog = np.eye(4)
-        trans_homog[3,0:3] = np.array([body_x_m, body_y_m, body_z_m])
+        trans_homog[3,0:3] = np.array([0, thigh_len_m + shin_len_m, 0])
         # construct body transform from angles and x,y,z pos
         self.t_body = np.matmul(trans_homog, rot_homog)
-        logging.get_logger("spot_kine").info(str(self.t_body))
 
-        right_leg_start_angles = np.array([0, -pi/6, pi/3])
-        left_leg_start_angles = np.array([0, pi/6, pi/3])
+        right_leg_start_angles = np.array([0, 0, 0])
+        left_leg_start_angles = np.array([0, 0, 0])
 
         # initialize legs with default 0 angles (standing)
         self.legs = {
@@ -218,6 +218,12 @@ class SpotKinematics():
             "bl": LegKinematics(self.t_body2bl(), False, pelvis_len_m, thigh_len_m, shin_len_m, left_leg_start_angles),
             "br": LegKinematics(self.t_body2br(), True, pelvis_len_m, thigh_len_m, shin_len_m, left_leg_start_angles)
         }
+
+        # now update body transform
+        rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
+        rot_homog[0:3, 0:3] = rotation
+        trans_homog[3,0:3] = np.array([body_x_m, body_y_m, body_z_m])
+        self.set_body_transform(np.matmul(trans_homog, rot_homog))
 
     def angles_to_SO2(self, pitch_rad, roll_rad, yaw_rad):
         roll  = np.array([[1.0,           0.0,            0.0],
@@ -312,9 +318,7 @@ class SpotKinematics():
 
         This is equivalent to just changing the "lean" of the body.
         """
-        feet_coords = {}
-        for leg in self.legs:
-            feet_coords[leg] = self.legs[leg].get_foot_pose_in_body_coords()
+        feet_coords = self.get_foot_coords()
 
         self.t_body = body_transform
 
@@ -323,11 +327,7 @@ class SpotKinematics():
         self.legs["bl"].set_transform_to_body(self.t_body2bl())
         self.legs["br"].set_transform_to_body(self.t_body2br())
 
-        feet_coords_matrix = np.block([[feet_coords["fl"]],
-                                       [feet_coords["fr"]],
-                                       [feet_coords["bl"]],
-                                       [feet_coords["br"]]])
-        self.set_foot_coords(feet_coords_matrix)
+        self.set_foot_coords(feet_coords)
 
     def set_body_angles(self, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0) -> None:
         """Sets lean of body (pose) while leaving foot positions fixed.
@@ -337,9 +337,6 @@ class SpotKinematics():
         TODO: we may want a getter for body angles
         """
         rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
-
-        logging.get_logger("kine").info("old rot: " + str(self.t_body[0:3,0:3]))
-        logging.get_logger("kine").info("new rot: " + str(rotation))
 
         new_transform = self.t_body
         new_transform[0:3,0:3] = rotation
