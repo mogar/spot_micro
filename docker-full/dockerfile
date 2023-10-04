@@ -34,5 +34,5 @@ RUN sudo echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 
 # install Spot depends
 RUN apt-get update && apt-get install -y \
-    python3-pip i2c-tools jstest-gtk
+    python3-pip i2c-tools jstest-gtk pytest
 RUN pip install smbus2 rpi.gpio

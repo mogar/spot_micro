@@ -32,6 +32,17 @@ source install/setup.bash
 
 Check out the launch files in `spot_ws/launch` for examples of what you can do.
 
+### Testing
+
+Run unit tests and view results with something like
+
+```
+colcon test --packages-select motion_control
+colcon test-result --all --verbose
+```
+
+You can run tests on only a single package (change the name to whatever you want). You can also run tests on all packages.
+
 ## Reference Frames
 
 For the robot as a whole:

@@ -3,6 +3,8 @@
 This code is very heavily based on the great kinematics library from mike4192. Check it out:
 https://github.com/mike4192/spot_micro_kinematics_python/
 
+One important note is that the default link lengths I use are different from his.
+
 He wrote his kinematics library based on this paper:
 Sen, Muhammed Arif & Bakircioglu, Veli & Kalyoncu, Mete. (2017). 
 Inverse Kinematic Analysis Of A Quadruped Robot.

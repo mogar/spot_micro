@@ -67,7 +67,7 @@ def joint_angles_to_np_array(joints: JointAngles) -> npt.NDArray:
     angles[1,2] = joints.frk
     angles[2,0] = joints.blc
     angles[2,1] = joints.blh
-    angles[2,1] = joints.blk
+    angles[2,2] = joints.blk
     angles[3,0] = joints.brc
     angles[3,1] = joints.brh
     angles[3,2] = joints.brk
