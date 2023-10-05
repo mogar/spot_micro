@@ -112,10 +112,10 @@ class LegKinematics():
         # constrain D to be less than 1 (otherwise we get sqrt errors)
         D = min(D, 1.0)
 
-        if self.right_not_left:
-            new_knee_angle = atan2(sqrt(1-D**2), D)
-        else:
-            new_knee_angle = atan2(-sqrt(1-D**2), D)
+        # Note: in the original code this was different for right and left legs
+        # I found that I had to keep it the same for all legs (using what was originally)
+        # the right only.
+        new_knee_angle = atan2(sqrt(1-D**2), D)
 
         # Secondary supporting variable
         D2 = x**2 + y**2 - self.pelvis_len_m**2
