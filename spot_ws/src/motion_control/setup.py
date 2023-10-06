@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'classic_gait = motion_control.classic_gait:main'
+            'classic_gait = motion_control.classic_gait:main',
+            'pose_cycle = motion_control.pose_cycle:main'
         ],
     },
 )

@@ -1,4 +1,6 @@
 
+from math import radians as rad
+
 import rclpy
 from rclpy.node import Node
 
@@ -8,7 +10,7 @@ from spot_interfaces.msg import StateCmd
 
 from motion_control.lib.state import SitState
 
-class gait_control(Node):
+class GaitControl(Node):
     """
     Class implementing ROS2 Node to convert motion commands into joint angles over time (gait).
     """
@@ -28,7 +30,7 @@ class gait_control(Node):
 
         # Set up gait parameters
         self.declare_parameter('speed_deadzone', 0.01) # TODO: fine tune value
-        self.declare_parameter('max_angle_delta_per_s', 30)
+        self.declare_parameter('max_angle_delta_per_s', rad(30))
 
         # create a timer to publish the command at the right rate
         self._max_angle_delta = self.get_parameter('publish_period_s').value * self.get_parameter('max_angle_delta_per_s').value
@@ -68,7 +70,7 @@ class gait_control(Node):
 
 def main(args=None) -> None:
     rclpy.init(args=args)
-    node = gait_control()
+    node = GaitControl()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
