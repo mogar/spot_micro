@@ -76,9 +76,9 @@ class StandState(BaseState):
         return self
 
     def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
+        # TODO: look at cmd.linear.y to see if we should raise/lower
         self._kinematics.set_body_angles(body_pitch_rad = cmd.angular.z, body_roll_rad = cmd.angular.x, body_yaw_rad = cmd.angular.y)
         target_angles = self._kinematics.get_joint_angles()
-        # TODO: look at cmd.linear.z to see if we should raise/lower
         target_joints = mu.multi_joint_one_step_interp(current_angles, mu.np_array_to_joint_angles(target_angles), max_angle_delta)
         return target_joints
 

@@ -6,6 +6,7 @@ from spot_interfaces.msg import JointAngles
 import motion_control.lib.motion_utils as motion_utils
 import motion_control.lib.poses as poses
 
+import copy
 
 class WalkManager():
     def __init__(self) -> None:
@@ -27,24 +28,32 @@ class WalkManager():
         self._moving_leg = 0
         self._num_legs = 4
 
+        # SpotKinematics defaults to correct size and standing pose
+        self._kinematics = SpotKinematics()
+        # we use this stand foot pos variable as a constant reference
+        self._stand_foot_pos = self._kinematics.get_foot_coords()
+        # this is what gets updated for the pose we are aiming at
+        self._target_foot_pos = self._kinematics.get_foot_coords()
+
         # We use a triangular stepping motion for each leg in sequence. We start at
         # the starting position, interpolate motion up to the high leg position, then
         # interpolate down to the stop leg position. After the leg is in the stop position,
         # the bot shifts its center of gravity to leave the next leg in the start position.
-        # TODO: start leg angles
-        # high leg angles
-        self._high_leg_coxa = 0.0 # TODO:
-        self._high_leg_hip = 5.0 # TODO:
-        self._high_leg_knee = 20.0 # TODO:
-        # stop leg angles
-        self._stop_leg_coxa = 0.0 # TODO:
-        self._stop_leg_hip = 20.0 # TODO:
-        self._stop_leg_knee = -20.0 # TODO:
+
+        # TODO: the rest of the gait constants (shifting, etc.)
+
+        # foot position when leg is up
+        self._leg_up_height = 0.03
+        self._leg_up_swing = 0.01
+        
+        # foot position at end of step
+        self._leg_down_height = 0.0
+        self._leg_down_swing = 0.03
 
 
     def is_standing(self, cmd: Twist) -> bool:
         # TODO: more robust speed checking
-        if (self._walking_state == 3) and (cmd.linear.y < 2):
+        if (self._walking_state == 3) and (cmd.linear.x < 2):
             return True
         return False
 
@@ -55,11 +64,17 @@ class WalkManager():
             return self.walking_angles(current_angles, cmd, max_angle_delta)
 
     def to_stand_angles(self, current_angles: JointAngles, max_angle_delta: int) -> JointAngles:
-        # TODO: calculate angles to return to standing
+        # set angles to 0 and feet to standing pose
+        self._kinematics.set_body_angles(body_pitch_rad = 0.0, body_roll_rad = 0.0, body_yaw_rad = 0.0)
+        self._kinematics.set_foot_coords(self._stand_foot_pos)
+        target_angles = self._kinematics.get_joint_angles()
+        target_joints = mu.np_array_to_joint_angles(target_angles)
 
-        if motion_utils.joint_angles_match(current_angles, poses.get_standing_pose()):
+        if motion_utils.joint_angles_match(current_angles, target_joints):
             self.walking_state = 3
-        return current_angles
+        else:
+            target_joints = mu.multi_joint_one_step_interp(current_angles, target_joints, max_angle_delta)
+        return target_joints
 
     def walking_angles(self, current_angles: JointAngles, cmd: Twist, max_angle_delta: int) -> JointAngles:
         # update leg phase
@@ -68,45 +83,37 @@ class WalkManager():
         # TODO: calculate speed from max_angle_delta and cmd
         speed = max_angle_delta
 
-        if self._swing_not_shift:
-            return self.triangular_interp_angles(current_angles, speed)
-        else:
-            return self.shift_center_of_gravity_angles(current_angles, speed)
+        return self.get_next_joint_angles(current_angles, speed)
 
     def update_phase(self, current_angles: JointAngles) -> None:
-        # TODO: check if current angles shows we're at the end of the phase
-        # foot on the ground, coxa forward
-        # maybe have a "done leg pose" we're targeting
+        # NOTE: currently assuming kinematics is set correctly for the current phase
+        target_angles = self._kinematics.get_joint_angles()
+        target_joints = mu.np_array_to_joint_angles(target_angles)
 
-        # TODO: calculate whether we're swinging or shifting
+        # calculate whether we're swinging or shifting
         if self._swing_not_shift:
-            # TODO: check that swing is in final leg pose
-            self._swing_not_shift = False
+            # TODO: WE NEED TWO PHASES HERE, ONE FOR UP AND ONE FOR DOWN
+            # check that swing is in final leg pose
+            if motion_utils.joint_angles_match(current_angles, target_joints):
+                self._swing_not_shift = False
+                # TODO: update target pose to be shifting
+                self._target_foot_pos = copy.copy(self._stand_foot_pos)
+                self._kinematics.set_foot_coords(self._target_foot_pos)
         else:
-            # TODO: check that shift is done
-            self._moving_leg += 1
-            if self._moving_leg >= self._num_legs:
-                self._moving_leg = 0
-            self._swing_not_shift = True
+            # check that shift is done
+            if motion_utils.joint_angles_match(current_angles, target_joints):
+                self._moving_leg += 1
+                if self._moving_leg >= self._num_legs:
+                    self._moving_leg = 0
+                self._swing_not_shift = True
+                # TODO: update target pose to be swinging
+                self._target_foot_pos = copy.copy(self._stand_foot_pos)
+                self._kinematics.set_foot_coords(self._target_foot_pos)
 
-    def triangular_interp_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
-        active_leg_angles = motion_utils.get_leg_angles_as_np_array(current_angles, self._moving_leg)
+    def get_next_joint_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
+        # NOTE: assuming that kinematics is already set for the target pose
+        target_angles = self._kinematics.get_joint_angles()
+        target_joints = mu.np_array_to_joint_angles(target_angles)
 
-        if active_leg_angles[0] <= self._high_leg_coxa:
-            # ascending: leg angles interp up to top
-            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._high_leg_coxa, angle_speed)
-            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._high_leg_hip, angle_speed)
-            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._high_leg_knee, angle_speed)
-        else:
-            # descending: leg angles interp down to stop
-            active_leg_angles[0] = motion_utils.one_step_interp(active_leg_angles[0], self._stop_leg_coxa, angle_speed)
-            active_leg_angles[1] = motion_utils.one_step_interp(active_leg_angles[1], self._stop_leg_hip, angle_speed)
-            active_leg_angles[2] = motion_utils.one_step_interp(active_leg_angles[2], self._stop_leg_knee, angle_speed)
-
-        new_angles = copy.copy(current_angles)
-        motion_utils.set_leg_angles_in_joint_angles(new_angles, active_leg_angles, self._moving_leg)
-        return new_angles
-
-    def shift_center_of_gravity_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
-        # TODO:
-        return current_angles
+        target_joints = mu.multi_joint_one_step_interp(current_angles, target_joints, max_angle_delta)
+        return target_joints
