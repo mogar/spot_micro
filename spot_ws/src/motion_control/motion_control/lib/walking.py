@@ -18,7 +18,10 @@ class WalkManager():
         self._walking_state = 0
 
         # track whether we are swinging a leg or shifting center of gravity
-        self._swing_not_shift = True
+        # swing up:   0
+        # swing down: 1
+        # shift:      2
+        self._swing_phase = 0
 
         # Leg IDs
         # FL = 0
@@ -40,15 +43,11 @@ class WalkManager():
         # interpolate down to the stop leg position. After the leg is in the stop position,
         # the bot shifts its center of gravity to leave the next leg in the start position.
 
-        # TODO: the rest of the gait constants (shifting, etc.)
-
         # foot position when leg is up
         self._leg_up_height = 0.03
-        self._leg_up_swing = 0.01
         
         # foot position at end of step
-        self._leg_down_height = 0.0
-        self._leg_down_swing = 0.03
+        self._leg_stride = 0.03
 
 
     def is_standing(self, cmd: Twist) -> bool:
@@ -91,23 +90,31 @@ class WalkManager():
         target_joints = mu.np_array_to_joint_angles(target_angles)
 
         # calculate whether we're swinging or shifting
-        if self._swing_not_shift:
-            # TODO: WE NEED TWO PHASES HERE, ONE FOR UP AND ONE FOR DOWN
-            # check that swing is in final leg pose
+        if self._swing_phase == 0:
+            # we're swinging up
             if motion_utils.joint_angles_match(current_angles, target_joints):
-                self._swing_not_shift = False
-                # TODO: update target pose to be shifting
-                self._target_foot_pos = copy.copy(self._stand_foot_pos)
+                # leg has achieved raised pose
+                self._swing_phase = 1
+                # TODO: change stride somehow??
+                self._target_foot_pos = get_walking_foot_poses(self._moving_leg, self._leg_up_height, self._leg_stride)
+                self._kinematics.set_foot_coords(self._target_foot_pos)
+        if self._swing_phase == 1:
+            # we're swinging down
+            if motion_utils.joint_angles_match(current_angles, target_joints):
+                # leg has achieved lowered pose
+                self._swing_phase = 2
+                # TODO: change stride somehow??
+                self._target_foot_pos = get_walking_foot_poses(self._moving_leg, 0.0, self._leg_stride)
                 self._kinematics.set_foot_coords(self._target_foot_pos)
         else:
-            # check that shift is done
+            # we're shifting the body
             if motion_utils.joint_angles_match(current_angles, target_joints):
+                # body shift is done
                 self._moving_leg += 1
                 if self._moving_leg >= self._num_legs:
                     self._moving_leg = 0
-                self._swing_not_shift = True
-                # TODO: update target pose to be swinging
-                self._target_foot_pos = copy.copy(self._stand_foot_pos)
+                self._swing_phase = 0
+                self._target_foot_pos = get_walking_foot_poses(self._moving_leg, 0.0, self._leg_stride)
                 self._kinematics.set_foot_coords(self._target_foot_pos)
 
     def get_next_joint_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
@@ -117,3 +124,11 @@ class WalkManager():
 
         target_joints = mu.multi_joint_one_step_interp(current_angles, target_joints, max_angle_delta)
         return target_joints
+
+    def get_walking_foot_poses(self, active_leg_id: int, active_foot_height: float, stride: float) -> npt.NDArray:
+        new_foot_pos = copy.copy(self._stand_foot_pos)
+        new_foot_pos[active_leg_id, 1] += active_foot_height
+
+        # TODO: handle stride
+
+        return new_foot_pos
