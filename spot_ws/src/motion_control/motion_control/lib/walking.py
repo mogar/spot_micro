@@ -52,27 +52,41 @@ class WalkManager():
 
     def is_standing(self, cmd: Twist) -> bool:
         # TODO: more robust speed checking
-        if (self._walking_state == 3) and (cmd.linear.x < 2):
-            return True
+        if (cmd.linear.x < 2):
+            if (self._walking_state == 3):
+                return True
+            self._walking_state = 2
         return False
 
     def new_joint_angles(self, current_angles: JointAngles, cmd: Twist, max_angle_delta: int) -> JointAngles:
         if self._walking_state == 2:
             return self.to_stand_angles(current_angles, max_angle_delta)
-        else: # TODO: assuming walking and transition to walk can use same controller
+        else:
             return self.walking_angles(current_angles, cmd, max_angle_delta)
 
     def to_stand_angles(self, current_angles: JointAngles, max_angle_delta: int) -> JointAngles:
-        # set angles to 0 and feet to standing pose
-        self._kinematics.set_body_angles(body_pitch_rad = 0.0, body_roll_rad = 0.0, body_yaw_rad = 0.0)
-        self._kinematics.set_foot_coords(self._stand_foot_pos)
         target_angles = self._kinematics.get_joint_angles()
         target_joints = mu.np_array_to_joint_angles(target_angles)
 
+        # check if we're done with the current phase
         if motion_utils.joint_angles_match(current_angles, target_joints):
-            self.walking_state = 3
-        else:
-            target_joints = mu.multi_joint_one_step_interp(current_angles, target_joints, max_angle_delta)
+            if self._walking_state != 3:
+                # assume we're already standing
+                self._walking_state = 3
+                for leg in range(0,self._num_legs):
+                    if self._target_foot_pos(leg,:) != self._stand_foot_pos(leg,:):
+                        if self._target_foot_pos(leg,1) > self._stand_foot_pos(leg,1):
+                            # we already have the foot up, so now put the foot down
+                            self._target_foot_pos(leg,:) = self._stand_foot_pos(leg,:)
+                        else:
+                            # the target foot is too low, raise it up so we can reposition the whole leg
+                            self._target_foot_pos(leg,1) = self._stand_foot_pos(leg,1) + self._leg_up_height
+                        # we're not ready to stand yet
+                        self._walking_state = 2
+                        break
+
+        self._kinematics.set_foot_coords(self._target_foot_pos)
+        target_joints = mu.multi_joint_one_step_interp(current_angles, target_joints, max_angle_delta)
         return target_joints
 
     def walking_angles(self, current_angles: JointAngles, cmd: Twist, max_angle_delta: int) -> JointAngles:
@@ -89,32 +103,36 @@ class WalkManager():
         target_angles = self._kinematics.get_joint_angles()
         target_joints = mu.np_array_to_joint_angles(target_angles)
 
-        # calculate whether we're swinging or shifting
-        if self._swing_phase == 0:
-            # we're swinging up
-            if motion_utils.joint_angles_match(current_angles, target_joints):
-                # leg has achieved raised pose
+        # check if we're done with the current phase
+        if motion_utils.joint_angles_match(current_angles, target_joints):
+            # calculate whether we're swinging or shifting
+            if self._swing_phase == 0:
+                # we're done swinging up
                 self._swing_phase = 1
-                # TODO: change stride somehow??
-                self._target_foot_pos = get_walking_foot_poses(self._moving_leg, self._leg_up_height, self._leg_stride)
+                # set target position for swinging down
+                self._target_foot_pos[self._moving_leg, 1] -= self._leg_up_height
+                self._target_foot_pos[self._moving_leg, 2] += self._leg_stride/2
                 self._kinematics.set_foot_coords(self._target_foot_pos)
-        if self._swing_phase == 1:
-            # we're swinging down
-            if motion_utils.joint_angles_match(current_angles, target_joints):
+            if self._swing_phase == 1:
                 # leg has achieved lowered pose
                 self._swing_phase = 2
-                # TODO: change stride somehow??
-                self._target_foot_pos = get_walking_foot_poses(self._moving_leg, 0.0, self._leg_stride)
+                # set target position shifting (all legs)
+                # we shift 4 times in a cycle, so we div by 4 to make a whole stride in one cycle
+                self._target_foot_pos[0, 2] += self._leg_stride/4
+                self._target_foot_pos[1, 2] += self._leg_stride/4
+                self._target_foot_pos[2, 2] += self._leg_stride/4
+                self._target_foot_pos[3, 2] += self._leg_stride/4
                 self._kinematics.set_foot_coords(self._target_foot_pos)
-        else:
-            # we're shifting the body
-            if motion_utils.joint_angles_match(current_angles, target_joints):
+            else:
                 # body shift is done
                 self._moving_leg += 1
                 if self._moving_leg >= self._num_legs:
                     self._moving_leg = 0
                 self._swing_phase = 0
-                self._target_foot_pos = get_walking_foot_poses(self._moving_leg, 0.0, self._leg_stride)
+
+                # set target position for swinging up
+                self._target_foot_pos[self._moving_leg, 1] += self._leg_up_height
+                self._target_foot_pos[self._moving_leg, 2] += self._leg_stride/2
                 self._kinematics.set_foot_coords(self._target_foot_pos)
 
     def get_next_joint_angles(self, current_angles: JointAngles, angle_speed: int) -> JointAngles:
@@ -125,10 +143,3 @@ class WalkManager():
         target_joints = mu.multi_joint_one_step_interp(current_angles, target_joints, max_angle_delta)
         return target_joints
 
-    def get_walking_foot_poses(self, active_leg_id: int, active_foot_height: float, stride: float) -> npt.NDArray:
-        new_foot_pos = copy.copy(self._stand_foot_pos)
-        new_foot_pos[active_leg_id, 1] += active_foot_height
-
-        # TODO: handle stride
-
-        return new_foot_pos
