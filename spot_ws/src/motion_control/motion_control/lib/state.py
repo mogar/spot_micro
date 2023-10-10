@@ -96,4 +96,4 @@ class WalkState(BaseState):
         return self
 
     def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
-        return self._walk_mgr(current_angles, cmd, max_angle_delta)
+        return self._walk_mgr.new_joint_angles(current_angles, cmd, max_angle_delta)
