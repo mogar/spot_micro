@@ -72,7 +72,9 @@ class StandState(BaseState):
         if state_cmd.sit != 0:
             logging.get_logger("StandState").info("transition to sit")
             return SitState()
-        # TODO: check twist_cmd for high velocity and move to walking
+        elif cmd.linear.x > 0:
+            logging.get_logger("StandState").info("transition to walk")
+            return WalkState()
         return self
 
     def joint_angles_from_cmd(self, current_angles, cmd, state_cmd, max_angle_delta):
@@ -92,6 +94,7 @@ class WalkState(BaseState):
     def next_state_from_cmd(self, cmd, state_cmd):
         if self._walk_mgr.is_standing(cmd):
             # switch to stand state if we're stationary and in stand stance
+            logging.get_logger("WalkState").info("transition to stand")
             return StandState()
         return self
 

@@ -107,7 +107,6 @@ class LegKinematics():
         """Set position of the foot. Joint angles to achieve the position are calculated via inverse kinematics from the
         input coordinates (leg frame).
         """
-        logging.get_logger("ikine").info("x: {}, y: {}, z: {}".format(x, y, z))
         # Supporting variable D
         D = (x**2 + y**2 + z**2 - self.pelvis_len_m**2 - self.thigh_len_m**2 - self.shin_len_m**2)/(2*self.thigh_len_m*self.shin_len_m)
         # constrain D to be less than 1 (otherwise we get sqrt errors)

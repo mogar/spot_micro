@@ -74,10 +74,10 @@ In order to identify specific joints in the robot, we sometimes used TLAs. For e
 
 ## TODO:
 
+* multi-axis motion smoothing is wonky
+* get walking working with direction (backwards, angled, turn)
 * document frames of reference
   * leg frame
-* get standing working with kinematics
-* walking gait
 * estop into servo controller?
   * rigid-halt or go limp?
 * make sure nodes/processes finish cleanly on ctl-c
