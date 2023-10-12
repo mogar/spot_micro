@@ -34,7 +34,7 @@ class Joy2Cmd(Node):
         self._sit_button_pressed = False
 
         # Set up parameters used in parsing joy messages
-        self.declare_parameter('publish_period_s', 0.02)
+        self.declare_parameter('publish_period_s', 0.05)
 
         self.declare_parameter('R_stick_side', 3)
         self.declare_parameter('R_stick_fwd', 4)
@@ -48,6 +48,7 @@ class Joy2Cmd(Node):
         self.declare_parameter('L_stick_fwd', 7)
         self.declare_parameter('L_trigger_bottom', 2)
         self.declare_parameter('pluspad_fwd', 1)
+        self.declare_parameter('pluspad_side', 0)
 
         self.declare_parameter('ang_x_scale', -0.35)
         self.declare_parameter('ang_y_scale', -0.35)
@@ -114,9 +115,9 @@ class Joy2Cmd(Node):
         cmd_msg.linear.y = y
         cmd_msg.linear.z = z
 
-        ang_x = self._joy_msg.axes[self.get_parameter('pluspad_fwd').value]
-        ang_y = self._joy_msg.axes[self.get_parameter('R_stick_fwd').value]
-        ang_z = self._joy_msg.axes[self.get_parameter('R_stick_side').value]
+        ang_x = self._joy_msg.axes[self.get_parameter('pluspad_side').value]
+        ang_y = self._joy_msg.axes[self.get_parameter('R_stick_side').value]
+        ang_z = self._joy_msg.axes[self.get_parameter('R_stick_fwd').value]
 
         ang_x *= self.get_parameter('ang_x_scale').value
         ang_y *= self.get_parameter('ang_y_scale').value

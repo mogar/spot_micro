@@ -112,10 +112,10 @@ class LegKinematics():
         # constrain D to be less than 1 (otherwise we get sqrt errors)
         D = max(-1.0, min(D, 1.0))
 
-        #if self.right_not_left == True:
-        new_knee_angle = atan2(sqrt(1-D**2),D)
-        #else:
-        #    new_knee_angle = atan2(-sqrt(1-D**2),D)
+        if self.right_not_left == True:
+            new_knee_angle = atan2(sqrt(1-D**2),D)
+        else:
+            new_knee_angle = atan2(-sqrt(1-D**2),D)
 
         # Secondary supporting variable
         D2 = x**2 + y**2 - self.pelvis_len_m**2
@@ -135,7 +135,7 @@ class LegKinematics():
         # This is easy to do in parts, because it's just the product of inverse rotation and negative translation matrices
         # Also, inverse of an SO(3) matrix is equal to its own transpose.
         rotation = self.body2base_transform[0:3,0:3].transpose()
-        translation = -1 * self.body2base_transform[0:3,3]
+        translation = -1 * self.body2base_transform[3,0:3]
 
         homog_rotation = np.eye(4)
         homog_rotation[0:3,0:3] = rotation
@@ -192,7 +192,7 @@ class LegKinematics():
                          self.knee_angle_rad])
 
 class SpotKinematics():
-    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.190, body_z_m: float = 0.0) -> None:
+    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.100, body_z_m: float = 0.0) -> None:
         """Initialize dimensions and pose of spot for use in motion calculations.
         """
         self.pelvis_len_m = pelvis_len_m
@@ -222,10 +222,10 @@ class SpotKinematics():
         }
 
         # now update body transform
-        rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
-        rot_homog[0:3, 0:3] = rotation
-        trans_homog[3,0:3] = np.array([body_x_m, body_y_m, body_z_m])
-        self.set_body_transform(np.matmul(trans_homog, rot_homog))
+        # rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
+        # rot_homog[0:3, 0:3] = rotation
+        # trans_homog[3,0:3] = np.array([body_x_m, body_y_m, body_z_m])
+        # self.set_body_transform(np.matmul(trans_homog, rot_homog))
 
     def angles_to_SO2(self, pitch_rad, roll_rad, yaw_rad):
         roll  = np.array([[1.0,           0.0,            0.0],
@@ -242,32 +242,32 @@ class SpotKinematics():
         rotation = np.matmul(np.matmul(roll, yaw), pitch)
         return rotation
 
-    def get_body_to_leg_transform(self, angle, x_dist, y_dist) -> npt.NDArray:
+    def get_body_to_leg_transform(self, angle, x_dist, z_dist) -> npt.NDArray:
         """Return the transform from the center of the body to a leg located at (angle, x, y) from center."""
         return np.array([[ cos(angle),  0.0, sin(angle), x_dist],
                          [         0.0, 1.0,        0.0,    0.0],
-                         [-sin(angle),  0.0, cos(angle), y_dist],
+                         [-sin(angle),  0.0, cos(angle), z_dist],
                          [         0.0, 0.0,        0.0,    1.0]])
 
     def t_body2fl(self):
         """Return a transform from the body pose to the front-left leg origin."""
         return np.matmul(self.t_body,
-                self.get_body_to_leg_transform(-pi/2, self.body_len_m/2, -self.body_width_m/2))
+                self.get_body_to_leg_transform(pi/2, self.body_len_m/2, -self.body_width_m/2))
 
     def t_body2fr(self):
         """Return a transform from the body pose to the front-right leg origin."""
         return np.matmul(self.t_body,
-                self.get_body_to_leg_transform(pi/2, self.body_len_m/2, self.body_width_m/2))
+                self.get_body_to_leg_transform(-pi/2, self.body_len_m/2, self.body_width_m/2))
         
     def t_body2bl(self):
         """Return a transform from the body pose to the back-left leg origin."""
         return np.matmul(self.t_body,
-                self.get_body_to_leg_transform(-pi/2, -self.body_len_m/2, -self.body_width_m/2))
+                self.get_body_to_leg_transform(pi/2, -self.body_len_m/2, -self.body_width_m/2))
 
     def t_body2br(self):
         """Return a transform from the body pose to the back-right leg origin."""
         return np.matmul(self.t_body,
-                self.get_body_to_leg_transform(pi/2, -self.body_len_m/2, self.body_width_m/2))
+                self.get_body_to_leg_transform(-pi/2, -self.body_len_m/2, self.body_width_m/2))
 
     def get_joint_angles(self) -> npt.NDArray:
         """Gets the current joint angles for the entire robot.

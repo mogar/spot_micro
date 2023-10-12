@@ -125,7 +125,7 @@ class WalkManager():
                 # set target position for swinging down
                 self._target_foot_pos[self._moving_leg, 1] = self._stand_foot_pos[self._moving_leg, 1]
                 self._target_foot_pos[self._moving_leg, 0] += self._leg_stride/2
-            if self._swing_phase == 1:
+            elif self._swing_phase == 1:
                 # leg has achieved lowered pose, now shift
                 self._swing_phase = 2
                 # set target position shifting (all legs)

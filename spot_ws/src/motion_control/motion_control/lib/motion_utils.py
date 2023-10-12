@@ -124,6 +124,7 @@ def multi_joint_one_step_interp(current_joints: JointAngles, target_joints: Join
 
     # calculate ratio of max allowable to max desired, and adjust all angles based on this one ratio
     ratio = max_step / max_delta_mag
+    ratio = min(ratio, 1.0)
     angle_deltas = angle_deltas * ratio
 
     # add allowable angle deltas to current angles and convert back to JointAngles
