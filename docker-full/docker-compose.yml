@@ -11,6 +11,8 @@ services:
       - /dev/i2c-1        # for RPi I2C
       - /dev/gpiomem      # for rpi.gpio
       - /dev/input/js0    # for gamepad
+      - /dev/input/event0 # for gamepad
+      - /dev/input/event1 # for gamepad
       - /dev/input/event2 # for gamepad
 #      - /dev/ttyUSB0:/dev/ttyUSB0
     tty: true

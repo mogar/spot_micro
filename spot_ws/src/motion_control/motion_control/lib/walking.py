@@ -1,4 +1,5 @@
 
+from rclpy import logging
 from geometry_msgs.msg import Twist
 
 from spot_interfaces.msg import JointAngles
