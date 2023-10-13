@@ -135,7 +135,7 @@ class LegKinematics():
         # This is easy to do in parts, because it's just the product of inverse rotation and negative translation matrices
         # Also, inverse of an SO(3) matrix is equal to its own transpose.
         rotation = self.body2base_transform[0:3,0:3].transpose()
-        translation = -1 * self.body2base_transform[3,0:3]
+        translation = -1 * self.body2base_transform[0:3,3]
 
         homog_rotation = np.eye(4)
         homog_rotation[0:3,0:3] = rotation
