@@ -111,7 +111,7 @@ class LegKinematics():
         """
         # Supporting variable D
         D = (x**2 + y**2 + z**2 - self.pelvis_len_m**2 - self.thigh_len_m**2 - self.shin_len_m**2)/(2*self.thigh_len_m*self.shin_len_m)
-        # constrain D to be less than 1 (otherwise we get sqrt errors)
+        # constrain magnitude of D to be less than 1 (otherwise we get sqrt errors)
         D = max(-1.0, min(D, 1.0))
 
         new_knee_angle = atan2(sqrt(1-D**2),D)
@@ -192,7 +192,7 @@ class LegKinematics():
                          self.knee_angle_rad])
 
 class SpotKinematics():
-    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.100, body_z_m: float = 0.0) -> None:
+    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.200, body_z_m: float = 0.0) -> None:
         """Initialize dimensions and pose of spot for use in motion calculations.
         """
         self.pelvis_len_m = pelvis_len_m
@@ -224,11 +224,7 @@ class SpotKinematics():
         }
 
         # now update body transform
-        # TODO: get foot pose in body pos and reset after this
-        rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
-        rot_homog[0:3, 0:3] = rotation
-        trans_homog[0:3,3] = np.array([body_x_m, body_y_m, body_z_m])
-        self.set_body_transform(np.matmul(trans_homog, rot_homog))
+        self.set_body_angles(body_pitch_rad, body_roll_rad, body_yaw_rad, body_y_m)
 
     def angles_to_SO2(self, pitch_rad, roll_rad, yaw_rad):
         roll  = np.array([[1.0,           0.0,            0.0],
@@ -334,7 +330,7 @@ class SpotKinematics():
 
         self.set_foot_coords(feet_coords)
 
-    def set_body_angles(self, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0) -> None:
+    def set_body_angles(self, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, height = None) -> None:
         """Sets lean of body (pose) while leaving foot positions fixed.
 
         phi = roll = x, theta = pitch = z, psi = yaw = y
@@ -344,4 +340,6 @@ class SpotKinematics():
         rotation = self.angles_to_SO2(body_pitch_rad, body_roll_rad, body_yaw_rad)
         new_transform = self.t_body
         new_transform[0:3,0:3] = rotation
+        if height is not None:
+            new_transform[1,3] = height
         self.set_body_transform(new_transform)
