@@ -112,9 +112,9 @@ class LegKinematics():
         input coordinates (leg frame).
         """
         # Supporting variable D
-        D = (x**2 + y**2 + z**2 - self.pelvis_len_m**2 -
-             self.thigh_len_m**2 - self.shin_len_m**2)
-             /(2*self.thigh_len_m*self.shin_len_m)
+        D = (x**2 + y**2 + z**2 - self.pelvis_len_m**2 - \
+             self.thigh_len_m**2 - self.shin_len_m**2) / \
+             (2*self.thigh_len_m*self.shin_len_m)
         # constrain magnitude of D to be less than 1 (otherwise we get sqrt errors)
         D = max(-1.0, min(D, 1.0))
 
@@ -184,7 +184,7 @@ class LegKinematics():
             transform_buildup, self.knee2foot_transform)
         p4 = transform_buildup[0:3, 3]
 
-        return np.vstack(p1, p2, p3, p4)
+        return np.vstack((p1, p2, p3, p4))
 
     def get_foot_pose_in_body_coords(self) -> npt.NDArray:
         """Return the coordinates of the foot's position in the body frame."""
@@ -360,5 +360,7 @@ class SpotKinematics():
         new_transform = self.t_body
         new_transform[0:3, 0:3] = rotation
         if height is not None:
-            new_transform[1, 3] = height
+            # The origin of the Spot is at the center of its body, so if we want it to be closer to the ground
+            # then the total height needs to be subtracted
+            new_transform[1, 3] = height - (self.thigh_len_m + self.shin_len_m)
         self.set_body_transform(new_transform)
