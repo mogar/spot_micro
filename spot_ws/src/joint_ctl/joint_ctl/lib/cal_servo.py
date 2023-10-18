@@ -1,17 +1,22 @@
 
 import time
 from servo import Servo, PcaPwm
+from math import radians as rad
 
 
 controller = PcaPwm(channel = 1)
 
-# intentionally wide limits, these probably won't actually correspond to 
-# the real angles here, but we're using targets instead of angles for control
-# anyway
-servo = Servo(controller, 2)
+flc_servo = Servo(controller, 3, min_out = [rad(-30.0), 450], max_out = [rad(30.0), 350]) # front-left coxa
+flh_servo = Servo(controller, 4, min_out = [rad(-78.0), 530], max_out = [rad(78.0), 270]) # front-left hip
+flk_servo = Servo(controller, 5, min_out = [rad(-60.0), 460], max_out = [rad(90.0), 110]) # front-left knee
+
 time.sleep(0.01)
-servo.set_target(400) # "safe" starting point
+flc_servo.set_angle_rad(0.0) # "safe" starting point
+flh_servo.set_angle_rad(0.0)
+flk_servo.set_angle_rad(0.0)
 
 while True:
     target = input("target: ")
-    servo.set_target(int(target))
+    flc_servo.set_angle_rad(float(target))
+    flh_servo.set_angle_rad(float(target))
+    flk_servo.set_angle_rad(float(target))
