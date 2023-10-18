@@ -21,7 +21,7 @@ class SpotJoints(Node):
         # TODO: parametrize servo pin IDs?
 
         # Front Left Leg
-        self._flc_servo = Servo(self._controller, 3, min_out = [rad(-30.0), 450], max_out = [rad(30.0), 350]) # front-left coxa
+        self._flc_servo = Servo(self._controller, 3, min_out = [rad(-30.0), 350], max_out = [rad(30.0), 450]) # front-left coxa
         self._flh_servo = Servo(self._controller, 4, min_out = [rad(-78.0), 530], max_out = [rad(78.0), 270]) # front-left hip
         self._flk_servo = Servo(self._controller, 5, min_out = [rad(-60.0), 460], max_out = [rad(90.0), 110]) # front-left knee
         # Front Right Leg
@@ -29,7 +29,7 @@ class SpotJoints(Node):
         self._frh_servo = Servo(self._controller, 1, min_out = [rad(-78.0), 220], max_out = [rad(78.0), 480]) # front-right hip
         self._frk_servo = Servo(self._controller, 2, min_out = [rad(-60.0), 300], max_out = [rad(90.0), 650]) # front-right knee
         # Back Left Leg
-        self._blc_servo = Servo(self._controller, 9, min_out = [rad(-30.0), 415], max_out = [rad(30.0), 315]) # back-left coxa
+        self._blc_servo = Servo(self._controller, 9, min_out = [rad(-30.0), 315], max_out = [rad(30.0), 415]) # back-left coxa
         self._blh_servo = Servo(self._controller, 10, min_out = [rad(-78.0), 550], max_out = [rad(78.0), 290]) # back-left hip
         self._blk_servo = Servo(self._controller, 11, min_out = [rad(-60.0), 470], max_out = [rad(90.0), 120]) # back-left knee
         # Back Right Leg
