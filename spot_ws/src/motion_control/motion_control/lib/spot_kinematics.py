@@ -211,6 +211,7 @@ class SpotKinematics():
         self.shin_len_m = shin_len_m
         self.body_width_m = body_width_m
         self.body_len_m = body_len_m
+        self.neutral_height_m = thigh_len_m + shin_len_m
 
         # starting rotation and position of the body
         # We start with full extension legs so that we simplify initialization
@@ -332,7 +333,7 @@ class SpotKinematics():
         self.legs["br"].set_foot_pose_in_body_coords(
             foot_coords[3, 0], foot_coords[3, 1], foot_coords[3, 2])
 
-    def set_body_transform(self, body_transform):
+    def set_body_transform(self, body_transform, body_height):
         """Set the body transform without changing the locations of the feet.
 
         This is equivalent to just changing the "lean" of the body.
@@ -346,9 +347,11 @@ class SpotKinematics():
         self.legs["bl"].set_transform_to_body(self.t_body2bl())
         self.legs["br"].set_transform_to_body(self.t_body2br())
 
+        feet_coords[:,1] += np.ones(4)*(self.neutral_height_m - body_height)
+
         self.set_foot_coords(feet_coords)
 
-    def set_body_angles(self, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, height=None) -> None:
+    def set_body_angles(self, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, height = None) -> None:
         """Sets lean of body (pose) while leaving foot positions fixed.
 
         phi = roll = x, theta = pitch = z, psi = yaw = y
@@ -359,8 +362,7 @@ class SpotKinematics():
             body_pitch_rad, body_roll_rad, body_yaw_rad)
         new_transform = self.t_body
         new_transform[0:3, 0:3] = rotation
-        if height is not None:
-            # The origin of the Spot is at the center of its body, so if we want it to be closer to the ground
-            # then the total height needs to be subtracted
-            new_transform[1, 3] = height - (self.thigh_len_m + self.shin_len_m)
-        self.set_body_transform(new_transform)
+
+        if height is None:
+            height = self.neutral_height_m
+        self.set_body_transform(new_transform, height)
