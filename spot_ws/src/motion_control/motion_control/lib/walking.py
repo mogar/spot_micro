@@ -47,7 +47,7 @@ class WalkManager():
         # the bot shifts its center of gravity to leave the next leg in the start position.
 
         # foot position when leg is up
-        self._leg_up_height = 0.03
+        self._leg_up_height = 0.015
         
         # foot position at end of step
         self._leg_stride = 0.1

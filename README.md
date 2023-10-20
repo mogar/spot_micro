@@ -74,9 +74,8 @@ In order to identify specific joints in the robot, we sometimes used TLAs. For e
 
 ## TODO:
 
-* get foot pose in body coords doesn't return correct value sometimes
-  * if the leg gets fully extended?
-* fr and bl hips rotate when they shouldn't, I think
+* recalibrate FR
+* ikine doesn't seem to handle leg extensions well
 * get walking working with direction (backwards, angled, turn)
 * document frames of reference
   * leg frame

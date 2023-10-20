@@ -203,7 +203,7 @@ class LegKinematics():
 
 
 class SpotKinematics():
-    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.200, body_z_m: float = 0.0) -> None:
+    def __init__(self, pelvis_len_m: float = 0.065, thigh_len_m: float = 0.105, shin_len_m: float = 0.132, body_width_m: float = 0.120, body_len_m: float = 0.180, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, body_x_m: float = 0.0, body_y_m: float = 0.250, body_z_m: float = 0.0) -> None:
         """Initialize dimensions and pose of spot for use in motion calculations.
         """
         self.pelvis_len_m = pelvis_len_m
@@ -211,11 +211,11 @@ class SpotKinematics():
         self.shin_len_m = shin_len_m
         self.body_width_m = body_width_m
         self.body_len_m = body_len_m
-        self.neutral_height_m = thigh_len_m + shin_len_m
 
         # starting rotation and position of the body
         # We start with full extension legs so that we simplify initialization
         # The last step of this init method is set the actual body pose
+        self.current_height_m = thigh_len_m + shin_len_m
         rot_homog = np.eye(4)
         trans_homog = np.eye(4)
         trans_homog[3, 0:3] = np.array([0.0, thigh_len_m + shin_len_m, 0.0])
@@ -347,8 +347,8 @@ class SpotKinematics():
         self.legs["bl"].set_transform_to_body(self.t_body2bl())
         self.legs["br"].set_transform_to_body(self.t_body2br())
 
-        feet_coords[:,1] += np.ones(4)*(self.neutral_height_m - body_height)
-
+        feet_coords[:,1] += np.ones(4)*(self.current_height_m - body_height)
+        self.current_height_m = body_height
         self.set_foot_coords(feet_coords)
 
     def set_body_angles(self, body_pitch_rad: float = 0.0, body_roll_rad: float = 0.0, body_yaw_rad: float = 0.0, height = None) -> None:
@@ -364,5 +364,5 @@ class SpotKinematics():
         new_transform[0:3, 0:3] = rotation
 
         if height is None:
-            height = self.neutral_height_m
+            height = self.current_height_m
         self.set_body_transform(new_transform, height)
