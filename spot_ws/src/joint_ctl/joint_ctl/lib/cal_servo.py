@@ -1,22 +1,28 @@
 
 import time
-from servo import Servo, PcaPwm
+from spot_joints import spot_joint_servos
 from math import radians as rad
-
-
-controller = PcaPwm(channel = 1)
-
-flc_servo = Servo(controller, 3, min_out = [rad(-30.0), 350], max_out = [rad(30.0), 450]) # front-left coxa
-flh_servo = Servo(controller, 4, min_out = [rad(-78.0), 530], max_out = [rad(78.0), 270]) # front-left hip
-flk_servo = Servo(controller, 5, min_out = [rad(-60.0), 460], max_out = [rad(90.0), 110]) # front-left knee
+from math import pi
 
 time.sleep(0.01)
-flc_servo.set_angle_rad(0.0) # "safe" starting point
-flh_servo.set_angle_rad(0.0)
-flk_servo.set_angle_rad(0.0)
+for _, servo in spot_joint_servos.items():
+    servo.set_angle_rad(0.0) # "safe" starting point
+
+print("Specify input as a string: joint,t,angle.")
+print("Joint should be the name of an individual joint (like \"flc\").")
+print("t should be a type (either \'r\' for radians, \'d\' for degrees, or \'c\' for counts)")
+print("angle should be a value corresponding to the type chosen")
 
 while True:
     target = input("target: ")
-    flc_servo.set_angle_rad(float(target))
-    flh_servo.set_angle_rad(float(target))
-    flk_servo.set_angle_rad(float(target))
+    s_name, t, angle = target.split(',')
+
+    if t == 'r':
+        spot_joint_servos[s_name].set_angle_rad(float(angle))
+    elif t == 'd':
+        spot_joint_servos[s_name].set_angle_rad(float(angle)*pi/180.0)
+    elif t == 'c':
+        spot_joint_servos[s_name].set_target(int(angle))
+    else:
+        print("invalid input: {}".format(target))
+        break

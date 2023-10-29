@@ -16,6 +16,19 @@ from smbus2 import SMBus
 from rclpy import logging
 
 from math import pi
+from math import radians as rad
+
+
+degrees_per_count = 0.6
+
+def get_joint_limits(zero_count: int, neg_limit_deg: float, pos_limit_deg: float, invert: bool = False):
+    if not invert:
+        return ([rad(neg_limit_deg), int(zero_count + neg_limit_deg/degrees_per_count)],
+                [rad(pos_limit_deg), int(zero_count + pos_limit_deg/degrees_per_count)])
+    else:
+        return ([rad(neg_limit_deg), int(zero_count - neg_limit_deg/degrees_per_count)],
+                [rad(pos_limit_deg), int(zero_count - pos_limit_deg/degrees_per_count)])
+
 
 class PcaPwm():
     """
