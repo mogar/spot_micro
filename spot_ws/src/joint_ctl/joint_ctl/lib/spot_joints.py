@@ -1,6 +1,6 @@
 
 
-from servo import Servo, PcaPwm, get_joint_limits
+from joint_ctl.lib.servo import Servo, PcaPwm, get_joint_limits
 
 
 # joint rotation limits for each spot_joint_limits["type of"] joint
@@ -19,7 +19,7 @@ spot_joint_limits = {
 (flh_min, flh_max) = get_joint_limits(400, spot_joint_limits["hip_min"],  spot_joint_limits["hip_max"], True)
 (flk_min, flk_max) = get_joint_limits(360, spot_joint_limits["knee_min"], spot_joint_limits["knee_max"], True)
 (frc_min, frc_max) = get_joint_limits(380, spot_joint_limits["coxa_min"], spot_joint_limits["coxa_max"])
-(frh_min, frh_max) = get_joint_limits(350, spot_joint_limits["hip_min"],  spot_joint_limits["hip_max"])
+(frh_min, frh_max) = get_joint_limits(333, spot_joint_limits["hip_min"],  spot_joint_limits["hip_max"])
 (frk_min, frk_max) = get_joint_limits(400, spot_joint_limits["knee_min"], spot_joint_limits["knee_max"])
 (blc_min, blc_max) = get_joint_limits(365, spot_joint_limits["coxa_min"], spot_joint_limits["coxa_max"])
 (blh_min, blh_max) = get_joint_limits(420, spot_joint_limits["hip_min"],  spot_joint_limits["hip_max"], True)

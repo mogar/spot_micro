@@ -31,7 +31,7 @@ class WalkManager():
         # FR = 1
         # BL = 2
         # BR = 3
-        self._moving_leg = 0
+        self._moving_leg = 1
         self._num_legs = 4
 
         # SpotKinematics defaults to correct size and standing pose
@@ -47,10 +47,10 @@ class WalkManager():
         # the bot shifts its center of gravity to leave the next leg in the start position.
 
         # foot position when leg is up
-        self._leg_up_height = 0.015
+        self._leg_up_height = 0.03
         
         # foot position at end of step
-        self._leg_stride = 0.1
+        self._leg_stride = 0.2
 
 
     def is_standing(self, cmd: Twist) -> bool:
