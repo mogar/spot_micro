@@ -21,9 +21,10 @@ class WalkManager():
         self._walking_state = 0
 
         # track whether we are swinging a leg or shifting center of gravity
-        # swing up:   0
-        # swing down: 1
-        # shift:      2
+        # tilt body:  0
+        # swing up:   1
+        # swing down: 2
+        # shift:      3
         self._swing_phase = 0
 
         # Leg IDs
@@ -31,7 +32,7 @@ class WalkManager():
         # FR = 1
         # BL = 2
         # BR = 3
-        self._moving_leg = 1
+        self._moving_leg = 0
         self._num_legs = 4
 
         # SpotKinematics defaults to correct size and standing pose
@@ -47,23 +48,26 @@ class WalkManager():
         # the bot shifts its center of gravity to leave the next leg in the start position.
 
         # foot position when leg is up
-        self._leg_up_height = 0.03
+        self._leg_up_height = 0.06
         
         # foot position at end of step
-        self._leg_stride = 0.2
+        self._leg_stride = 0.125
 
         # In order to prevent the bot from tipping when it moves a leg, the whole body tilts
         # to move the center of gravity nearer to the stationary legs. The tilt angles are given
         # below.
 
         # max body roll angle to maintain balance
-        self._balance_roll = 0.035
+        self._balance_roll = 0.2
 
         # max body pitch angle when lifting back leg
-        self._balance_pitch_fwd = -0.035
+        self._balance_pitch_fwd = -0.2
 
         # max body pitch angle when lifting front leg
-        self._balance_pitch_back = 0.005
+        self._balance_pitch_back = 0.1
+
+        # we start in "transition to walk" with moving leg as FL
+        self._kinematics.set_body_angles(body_pitch_rad = self._balance_pitch_back, body_roll_rad = self._balance_roll)
 
 
     def is_standing(self, cmd: Twist) -> bool:
@@ -134,14 +138,19 @@ class WalkManager():
         if mu.joint_angles_match(current_angles, target_joints):
             # calculate whether we're swinging or shifting
             if self._swing_phase == 0:
-                # we're done swinging up, now swing down
                 self._swing_phase = 1
+                # set target position for swinging up
+                self._target_foot_pos[self._moving_leg, 1] += self._leg_up_height
+                self._target_foot_pos[self._moving_leg, 0] += self._leg_stride/2
+            elif self._swing_phase == 1:
+                # we're done swinging up, now swing down
+                self._swing_phase = 2
                 # set target position for swinging down
                 self._target_foot_pos[self._moving_leg, 1] = self._stand_foot_pos[self._moving_leg, 1]
                 self._target_foot_pos[self._moving_leg, 0] += self._leg_stride/2
-            elif self._swing_phase == 1:
+            elif self._swing_phase == 2:
                 # leg has achieved lowered pose, now shift
-                self._swing_phase = 2
+                self._swing_phase = 3
                 # set target position shifting (all legs)
                 # we shift 4 times in a cycle, so we div by 4 to make a whole stride in one cycle
                 self._target_foot_pos[0, 0] -= self._leg_stride/4
@@ -149,7 +158,7 @@ class WalkManager():
                 self._target_foot_pos[2, 0] -= self._leg_stride/4
                 self._target_foot_pos[3, 0] -= self._leg_stride/4
             else:
-                # body shift is done, change legs and move the next up
+                # body shift is done, change legs and tilt body
                 self._moving_leg += 1
                 if self._moving_leg >= self._num_legs:
                     self._moving_leg = 0
@@ -157,18 +166,15 @@ class WalkManager():
 
                 # update the body angle, default to moving back-left leg
                 roll = self._balance_roll
-                pitch = self._balance_pitch_back
+                pitch = self._balance_pitch_fwd
                 if self._moving_leg == 1 or self._moving_leg == 3:
                     # right legs
                     roll = -self._balance_roll
                 if self._moving_leg == 0 or self._moving_leg == 1:
                     # front legs
-                    pitch = self._balance_pitch_fwd
+                    pitch = self._balance_pitch_back
                 self._kinematics.set_body_angles(body_pitch_rad = pitch, body_roll_rad = roll)
 
-                # set target position for swinging up
-                self._target_foot_pos[self._moving_leg, 1] += self._leg_up_height
-                self._target_foot_pos[self._moving_leg, 0] += self._leg_stride/2
             # update foot coordinates now that we've calculated them
             self._kinematics.set_foot_coords(self._target_foot_pos)
 

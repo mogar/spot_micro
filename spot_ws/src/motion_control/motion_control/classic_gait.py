@@ -26,7 +26,7 @@ class GaitControl(Node):
         self._state_cmd_sub # prevent unused variable warning
 
         # Set up parameters used in parsing joy messages
-        self.declare_parameter('publish_period_s', 0.05)
+        self.declare_parameter('publish_period_s', 0.07)
 
         # Set up gait parameters
         self.declare_parameter('speed_deadzone', 0.01) # TODO: fine tune value
