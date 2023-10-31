@@ -52,6 +52,19 @@ class WalkManager():
         # foot position at end of step
         self._leg_stride = 0.2
 
+        # In order to prevent the bot from tipping when it moves a leg, the whole body tilts
+        # to move the center of gravity nearer to the stationary legs. The tilt angles are given
+        # below.
+
+        # max body roll angle to maintain balance
+        self._balance_roll = 0.035
+
+        # max body pitch angle when lifting back leg
+        self._balance_pitch_fwd = -0.035
+
+        # max body pitch angle when lifting front leg
+        self._balance_pitch_back = 0.005
+
 
     def is_standing(self, cmd: Twist) -> bool:
         # TODO: more robust speed checking
@@ -141,6 +154,17 @@ class WalkManager():
                 if self._moving_leg >= self._num_legs:
                     self._moving_leg = 0
                 self._swing_phase = 0
+
+                # update the body angle, default to moving back-left leg
+                roll = self._balance_roll
+                pitch = self._balance_pitch_back
+                if self._moving_leg == 1 or self._moving_leg == 3:
+                    # right legs
+                    roll = -self._balance_roll
+                if self._moving_leg == 0 or self._moving_leg == 1:
+                    # front legs
+                    pitch = self._balance_pitch_fwd
+                self._kinematics.set_body_angles(body_pitch_rad = pitch, body_roll_rad = roll)
 
                 # set target position for swinging up
                 self._target_foot_pos[self._moving_leg, 1] += self._leg_up_height
