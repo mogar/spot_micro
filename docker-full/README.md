@@ -15,7 +15,7 @@ docker build -t ros2 .
 Note that you may want to tweak the `docker-compose.yml` file before you run it. In particular, you may need to update the devices you share with docker (such as I2C device path at the very least).
 
 ```
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Connect to running container
