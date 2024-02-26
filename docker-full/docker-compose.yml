@@ -5,10 +5,10 @@ services:
     network_mode: host
     ipc: host
     volumes:
-      - /home/robo/ros:/home/ros
-      - /home/robo/cubie-1:/ros2
+      - /home/robo/spot_micro:/home/ros
     devices:
-#      - /dev/i2c-1        # for RPi I2C
+      - /dev/i2c-1        # for RPi I2C
+      - /dev/video0
       - /dev/gpiomem      # for rpi.gpio
       - /dev/input/js0    # for gamepad
       - /dev/input/event0 # for gamepad

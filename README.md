@@ -11,9 +11,21 @@ You'll want to put together your robot, including servos, before doing anything 
 
 For commanding the robot, a Logitech F710 gamepad is used.
 
+### RPi Config Notes
+
+Make sure to use an updated version of Raspberry Pi OS. If you use the [Image Downloader](https://www.raspberrypi.com/software/), be sure to enable ssh and turn on wifi. You will also want to use `raspi-config` to enable I2C after your first boot.
+
+For the ROS2 Camera node, we use [ros2-v4l2-camera](https://gitlab.com/boldhearts/ros2_v4l2_camera). That doesn't work with the current libcamera drivers available with Raspberry Pi OS. Follow the instructions on the ros2-v4l2-camera node README to use an older driver.
+
 ## Software
 
 Some of this software is based on the [spot-mini-mini repo from OpenQuadruped](https://github.com/OpenQuadruped/spot_mini_mini).
+
+## Remote Monitoring
+
+You can install [FoxGlove](https://github.com/foxglove/studio) and use the [foxglove-bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge/) node to view camera data from the robot. There's a bit of lag, but it works well.
+
+After you install FoxGlove, start the robot (using a launchfile that includes foxglove-bridge) and then connect FoxGlove to the IP address of the RPi. You should be able to see camera data immediately.
 
 ## Usage
 
