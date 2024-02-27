@@ -86,6 +86,10 @@ In order to identify specific joints in the robot, we sometimes used TLAs. For e
 
 ## TODO:
 
+* ssh keys for hugging face
+* also add to readme about ssh keys for hugging face
+* git submodule for depth anything model - https://huggingface.co/LiheYoung/depth-anything-small-hf/tree/main
+* test depth anything
 * recalibrate FR
 * ikine doesn't seem to handle leg extensions well
 * get walking working with direction (backwards, angled, turn)
