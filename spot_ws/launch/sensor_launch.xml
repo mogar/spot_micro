@@ -2,6 +2,8 @@
     <!-- Start v4l2_camera_node -->
     <node pkg="v4l2_camera" exec="v4l2_camera_node" name="v4l2_camera_node" output="screen"/>
 
+    <node pkg="perception" exec="depth_anything" name="depth_anything" output="screen"/>
+
     <!-- Start foxglove_bridge_launch -->
     <include file="$(find-pkg-share foxglove_bridge)/launch/foxglove_bridge_launch.xml">
         <arg name="address" value="192.168.0.218"/> 

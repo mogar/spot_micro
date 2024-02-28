@@ -36,4 +36,4 @@ RUN sudo echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 RUN apt-get update && apt-get install -y \
     python3-pip i2c-tools jstest-gtk 
 RUN pip install smbus2 rpi.gpio pytest
-RUN pip install transformers
+RUN pip install transformers numpy torch

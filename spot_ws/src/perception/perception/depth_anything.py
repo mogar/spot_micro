@@ -5,7 +5,7 @@ from sensor_msgs.msg import Image
 
 # for image conversions
 from cv_bridge import CvBridge
-from PIL import Image
+from PIL import Image as PILImage
 
 # For depth pipeline
 from transformers import pipeline
@@ -16,7 +16,7 @@ class DepthAnything(Node):
     """
     def __init__(self) -> None:
         super().__init__("depth_anything")
-         self._subscription = self.create_subscription(
+        self._subscription = self.create_subscription(
             Image,
             '/image_raw',
             self.image_callback,
@@ -24,10 +24,10 @@ class DepthAnything(Node):
         self._subscription  # prevent unused variable warning
         self._publisher = self.create_publisher(Image, '/processed_image', 10)
 
-        self.bridge = CvBridge()
+        self._bridge = CvBridge()
 
-        # TODO: param for model path
-        self._depth_anything = pipeline(task="depth-estimation", model="LiheYoung/depth-anything-small-hf")
+        # # TODO: param for model path
+        self._depth_anything = pipeline(task="depth-estimation", model="third_party/depth_anything")
 
         self.get_logger().info("DepthAnything initialized")
 
@@ -36,17 +36,17 @@ class DepthAnything(Node):
         """Convert the input RGB image into a depth image and republish it."""
         try:
             # Convert ROS Image message to PIL Image
-            pil_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+            pil_image = self._bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
             pil_image = PILImage.fromarray(np.uint8(pil_image))
 
             # Process the image using the defined function
             depth = self._depth_anything(cv_image)["depth"]
 
             # Convert the processed image back to ROS Image message
-            processed_image_msg = self.bridge.cv2_to_imgmsg(depth, encoding='passthrough')
+            processed_image_msg = self._bridge.cv2_to_imgmsg(depth, encoding='passthrough')
 
             # Publish the processed image
-            self.publisher.publish(processed_image_msg)
+            self._publisher.publish(processed_image_msg)
         
         except Exception as e:
             self.get_logger().error(f"Error processing image: {str(e)}")
@@ -54,9 +54,9 @@ class DepthAnything(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    image_processing_node = ImageProcessingNode()
-    rclpy.spin(image_processing_node)
-    image_processing_node.destroy_node()
+    depth_anything_node = DepthAnything()
+    rclpy.spin(depth_anything_node)
+    depth_anything_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

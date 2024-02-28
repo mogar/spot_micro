@@ -21,6 +21,8 @@ For the ROS2 Camera node, we use [ros2-v4l2-camera](https://gitlab.com/boldheart
 
 Some of this software is based on the [spot-mini-mini repo from OpenQuadruped](https://github.com/OpenQuadruped/spot_mini_mini).
 
+This repo also has submodules from huggingface. You'll likely want to [set up ssh keys with HF](https://huggingface.co/docs/hub/en/security-git-ssh) before you clone this.
+
 ## Remote Monitoring
 
 You can install [FoxGlove](https://github.com/foxglove/studio) and use the [foxglove-bridge](https://docs.foxglove.dev/docs/connecting-to-data/ros-foxglove-bridge/) node to view camera data from the robot. There's a bit of lag, but it works well.
@@ -86,9 +88,6 @@ In order to identify specific joints in the robot, we sometimes used TLAs. For e
 
 ## TODO:
 
-* ssh keys for hugging face
-* also add to readme about ssh keys for hugging face
-* git submodule for depth anything model - https://huggingface.co/LiheYoung/depth-anything-small-hf/tree/main
 * test depth anything
 * recalibrate FR
 * ikine doesn't seem to handle leg extensions well
